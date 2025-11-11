@@ -60,7 +60,7 @@ class CustomLoginView(LoginView):
         if user.role == 'admin' or user.is_superuser:
             return redirect('adminpanel:dashboard')
         elif user.role == 'host':
-            return redirect('host_dashboard')
+            return redirect('host:dashboard')
         elif user.role == 'planner':
             return redirect('planner_dashboard')
         elif user.role == 'guest':
@@ -107,12 +107,26 @@ class AddHostView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
                 widgets = {
                     'address': forms.Textarea(attrs={'rows': 3}),
                 }
+            
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                # Make fields required
+                self.fields['full_name'].required = True
+                self.fields['mobile_number'].required = True
+                self.fields['address'].required = True
+                # Add labels and help text
+                self.fields['full_name'].label = 'Full Name '
+                self.fields['mobile_number'].label = 'Mobile Number '
+                self.fields['mobile_number'].help_text = '10 digits starting with 6, 7, 8, or 9'
+                self.fields['address'].label = 'Address '
+                
             def clean_mobile_number(self):
                 mobile = self.cleaned_data.get('mobile_number')
                 if mobile:
                     if not mobile.isdigit() or len(mobile) != 10 or mobile[0] not in '6789':
-                        raise forms.ValidationError('Mobile number must be exactly 10 digits starting with 6, 7, 8, or 9.')
+                        raise forms.ValidationError("Mobile number must be exactly 10 digits starting with 6, 7, 8, or 9.")
                 return mobile
+        
         return HostForm
 
     def form_valid(self, form):
@@ -122,25 +136,33 @@ class AddHostView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
         form.instance.set_password(password)
         response = super().form_valid(form)
-        send_mail(
-            'Welcome to EventApp - Your Account Details',
-            f'Dear {form.instance.full_name or "Host"},\n\n'
-            f'Your account has been created by the admin.\n'
-            f'Username: {form.instance.username}\n'
-            f'Temporary Password: {password}\n\n'
-            f'Please login at /accounts/login/ and change your password immediately.\n\n'
-            f'Best regards,\nEventApp Team',
-            settings.DEFAULT_FROM_EMAIL,
-            [form.instance.email],
-            fail_silently=False,
-        )
-        messages.success(self.request, f'Host "{form.instance.username}" added successfully. Credentials emailed.')
+        
+        # Send email with error handling
+        try:
+            send_mail(
+                'Welcome to EventApp - Your Account Details',
+                f'Dear {form.instance.full_name},\n\n'
+                f'Your host account has been created by the admin.\n'
+                f'Username: {form.instance.username}\n'
+                f'Temporary Password: {password}\n\n'
+                f'Please login at /accounts/login/ and change your password immediately.\n\n'
+                f'Best regards,\nEventApp Team',
+                settings.DEFAULT_FROM_EMAIL,
+                [form.instance.email],
+                fail_silently=False,
+            )
+            messages.success(self.request, f'Host "{form.instance.username}" added successfully. Credentials emailed to {form.instance.email}.')
+        except Exception as e:
+            messages.warning(self.request, f'Host "{form.instance.username}" created but email failed: {str(e)}')
+        
         return response
+
+
 
 # Password views (custom templates)
 class CustomPasswordChangeView(PasswordChangeView):
     template_name = 'accounts/password_change.html'
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('accounts:home')
 
     def form_valid(self, form):
         messages.success(self.request, 'Password changed successfully.')

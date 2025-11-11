@@ -44,8 +44,8 @@
                         <td>
                             {% if user.role == 'planner' or user.role == 'guest' %}
                                 {% if not user.is_approved %}
-                                    <a href="{% url 'adminpanel:approve_user' user.pk %}" class="btn btn-success btn-sm">Approve</a>
-                                    <a href="{% url 'adminpanel:reject_user' user.pk %}" class="btn btn-danger btn-sm">Reject</a>
+                                    <a href="{% url 'adminpanel:approve_user' user.pk %}" class="btn btn-success btn-sm" onclick="return confirm('Are you sure?')">Approve</a>
+                                    <a href="{% url 'adminpanel:reject_user' user.pk %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Reject</a>
                                 {% endif %}
                             {% endif %}
                             <a href="{% url 'adminpanel:user_edit' user.pk %}" class="btn btn-primary btn-sm">Edit</a>

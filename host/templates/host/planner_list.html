@@ -1,0 +1,41 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Manage Planners - EventApp{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Manage Planners</h2>
+        <a href="{% url 'host:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Mobile</th>
+                        <th>Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for planner in planners %}
+                    <tr>
+                        <td>{{ planner.full_name }}</td>
+                        <td>{{ planner.email }}</td>
+                        <td>{{ planner.mobile_number }}</td>
+                        <td>{{ planner.address|truncatewords:10 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center">No planners registered.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

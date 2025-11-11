@@ -1,0 +1,66 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Event Details | EventApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">{{ object.name }}</h4>
+            <div>
+                {% comment %} <a href="{% url 'host:event_update' object.id %}" class="btn btn-sm btn-warning me-2">Edit</a> {% endcomment %}
+                <a href="{% url 'host:event_delete' object.id %}" class="btn btn-sm btn-danger">Delete</a>
+            </div>
+        </div>
+
+        {% if object.banner %}
+            <img src="{{ object.banner.url }}" alt="{{ object.name }}" class="img-fluid rounded-bottom" style="max-height: 400px; width: 100%; object-fit: cover;">
+        {% else %}
+            <div class="bg-secondary text-white text-center py-5">
+                <p class="mb-0">No banner uploaded for this event.</p>
+            </div>
+        {% endif %}
+
+        <div class="card-body">
+            <h5 class="card-title text-primary mb-3">Event Details</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <strong>Start Date:</strong>
+                    <p class="mb-0">{{ object.start_date|date:"d-m-Y H:i" }}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <strong>End Date:</strong>
+                    <p class="mb-0">{{ object.end_date|date:"d-m-Y H:i" }}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <strong>Budget:</strong>
+                    <p class="mb-0">₹ {{ object.budget|floatformat:0 }}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <strong>Guest Count:</strong>
+                    <p class="mb-0">{{ object.guest_count }}</p>
+                </div>
+            </div>
+
+            <h5 class="card-title text-primary mt-4 mb-3">Selected Services</h5>
+            {% if object.needs %}
+                <ul class="list-group list-group-flush mb-4">
+                    {% for need in object.needs %}
+                        <li class="list-group-item">{{ need }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">No services selected.</p>
+            {% endif %}
+
+            <h5 class="card-title text-primary mt-4 mb-3">Venue Details</h5>
+            <p>{{ object.venue_details|linebreaks }}</p>
+        </div>
+
+        <div class="card-footer bg-light text-end">
+            <a href="{% url 'host:event_list' %}" class="btn btn-secondary">← Back to Events</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

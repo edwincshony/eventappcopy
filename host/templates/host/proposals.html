@@ -1,0 +1,50 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Proposals - EventApp{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Event Proposals</h2>
+        <a href="{% url 'host:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Planner</th>
+                        <th>Amount</th>
+                        <th>Services</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for proposal in proposals %}
+                    <tr>
+                        <td>{{ proposal.event.name }}</td>
+                        <td>{{ proposal.planner.full_name }}</td>
+                        <td>₹{{ proposal.amount }}</td>
+                        <td>{{ proposal.services|truncatewords:5 }}</td>
+                        <td><span class="badge bg-{% if proposal.status == 'pending' %}warning{% elif proposal.status == 'accepted' %}success{% else %}danger{% endif %}">{{ proposal.status|title }}</span></td>
+                        <td>
+                            {% if proposal.status == 'pending' %}
+                                <a href="{% url 'host:accept_proposal' proposal.pk %}" class="btn btn-sm btn-success">Accept</a>
+                                <a href="{% url 'host:accept_proposal' proposal.pk %}?status=rejected" class="btn btn-sm btn-danger">Reject</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center">No proposals yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

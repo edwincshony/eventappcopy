@@ -1,0 +1,55 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Host Dashboard - EventApp{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Welcome, {{ user.full_name }} (Host)</h2>
+        <p>Manage your events, view guests & planners, and review proposals.</p>
+        <a href="{% url 'host:event_add' %}" class="btn btn-primary">Add New Event</a>
+        <a href="{% url 'host:guest_list' %}" class="btn btn-info">Manage Guests ({{ total_guests }})</a>
+        <a href="{% url 'host:planner_list' %}" class="btn btn-success">Manage Planners ({{ total_planners }})</a>
+        <a href="{% url 'host:proposals' %}" class="btn btn-warning">Proposals ({{ pending_proposals }})</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>My Events</h5>
+            </div>
+            <div class="card-body">
+                {% if events %}
+                    <ul class="list-group">
+                        {% for event in events %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ event.name }}
+                            <span>
+                                <a href="{% url 'host:event_detail' event.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                                <a href="{% url 'host:event_edit' event.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                <a href="{% url 'host:event_delete' event.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No events yet. <a href="{% url 'host:event_add' %}">Create one</a>.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Stats</h5>
+            </div>
+            <div class="card-body">
+                <p>Total Events: <strong>{{ events.count }}</strong></p>
+                <p>Pending Proposals: <strong>{{ pending_proposals }}</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

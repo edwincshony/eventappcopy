@@ -1,0 +1,50 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}My Events - EventApp{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>My Events</h2>
+        <a href="{% url 'host:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+        <a href="{% url 'host:event_add' %}" class="btn btn-primary">Add Event</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Start Date</th>
+                        <th>Budget</th>
+                        <th>Guest Count</th>
+                        <th>Needs</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events %}
+                    <tr>
+                        <td>{{ event.name }}</td>
+                        <td>{{ event.start_date|date:"M d, Y H:i" }}</td>
+                        <td>₹{{ event.budget }}</td>
+                        <td>{{ event.guest_count }}</td>
+                        <td>{{ event.needs }}</td>
+                        <td>
+                            <a href="{% url 'host:event_detail' event.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                            <a href="{% url 'host:event_edit' event.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                            <a href="{% url 'host:event_delete' event.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center">No events found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

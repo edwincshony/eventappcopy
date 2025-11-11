@@ -1,0 +1,123 @@
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib import messages
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
+from django.urls import reverse_lazy
+from django.db.models import Q
+from .models import Event, Proposal
+from .forms import EventForm, ProposalAcceptForm
+from accounts.models import CustomUser
+
+class HostRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.role == 'host'
+    def handle_no_permission(self):
+        messages.warning(self.request, 'You must be a logged-in Host to access this page.')
+        return redirect('home')
+
+class HostDashboardView(LoginRequiredMixin, HostRequiredMixin, ListView):
+    model = Event
+    template_name = 'host/dashboard.html'
+    context_object_name = 'events'
+
+    def get_queryset(self):
+        return Event.objects.filter(host=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_guests'] = CustomUser.objects.filter(role='guest', is_approved=True).count()
+        context['total_planners'] = CustomUser.objects.filter(role='planner', is_approved=True).count()
+        context['pending_proposals'] = Proposal.objects.filter(event__host=self.request.user, status='pending').count()
+        return context
+
+class EventListView(LoginRequiredMixin, HostRequiredMixin, ListView):
+    model = Event
+    template_name = 'host/event_list.html'
+    context_object_name = 'events'
+
+    def get_queryset(self):
+        return Event.objects.filter(host=self.request.user)
+
+class EventCreateView(LoginRequiredMixin, HostRequiredMixin, CreateView):
+    model = Event
+    form_class = EventForm
+    template_name = 'host/event_form.html'
+    success_url = reverse_lazy('host:event_list')
+
+    def form_valid(self, form):
+        form.instance.host = self.request.user
+        messages.success(self.request, 'Event created successfully! Invite planners to bid.')
+        return super().form_valid(form)
+
+class EventUpdateView(LoginRequiredMixin, HostRequiredMixin, UpdateView):
+    model = Event
+    form_class = EventForm
+    template_name = 'host/event_form.html'
+    success_url = reverse_lazy('host:event_list')
+
+    def get_queryset(self):
+        return Event.objects.filter(host=self.request.user)
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Event updated successfully.')
+        return super().form_valid(form)
+
+class EventDeleteView(LoginRequiredMixin, HostRequiredMixin, DeleteView):
+    model = Event
+    template_name = 'host/event_confirm_delete.html'
+    success_url = reverse_lazy('host:event_list')
+
+    def get_queryset(self):
+        return Event.objects.filter(host=self.request.user)
+
+    def delete(self, request, *args, **kwargs):
+        messages.error(request, 'Event deleted successfully.')
+        return super().delete(request, *args, **kwargs)
+
+class EventDetailView(LoginRequiredMixin, HostRequiredMixin, DetailView):
+    model = Event
+    template_name = 'host/event_details.html'  # Optional; add if needed
+
+    def get_queryset(self):
+        return Event.objects.filter(host=self.request.user)
+
+class GuestListView(LoginRequiredMixin, HostRequiredMixin, ListView):
+    model = CustomUser
+    template_name = 'host/guest_list.html'
+    context_object_name = 'guests'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return CustomUser.objects.filter(role='guest', is_approved=True).order_by('full_name')
+
+class PlannerListView(LoginRequiredMixin, HostRequiredMixin, ListView):
+    model = CustomUser
+    template_name = 'host/planner_list.html'
+    context_object_name = 'planners'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return CustomUser.objects.filter(role='planner', is_approved=True).order_by('full_name')
+
+class ProposalsView(LoginRequiredMixin, HostRequiredMixin, ListView):
+    model = Proposal
+    template_name = 'host/proposals.html'
+    context_object_name = 'proposals'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return Proposal.objects.filter(event__host=self.request.user).order_by('-created_at')
+
+def accept_proposal(request, pk):
+    proposal = get_object_or_404(Proposal, pk=pk, event__host=request.user)
+    if request.method == 'POST':
+        form = ProposalAcceptForm(request.POST, instance=proposal)
+        if form.is_valid():
+            form.save()
+            status = proposal.status
+            messages.success(request, f'Proposal {status} successfully.')
+            # Notify planner via email (expand in notifications)
+            return redirect('host:proposals')
+    else:
+        form = ProposalAcceptForm(instance=proposal)
+    return render(request, 'host/proposal_action.html', {'form': form, 'proposal': proposal})
