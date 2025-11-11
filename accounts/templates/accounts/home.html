@@ -1,0 +1,57 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Home - EventApp{% endblock %}
+
+{% block content %}
+<div class="jumbotron bg-light p-5 rounded mb-4">
+    <div class="text-center">
+        <h1 class="display-4">Welcome to EventApp</h1>
+        <p class="lead">The ultimate platform connecting Admins, Hosts, Guests, and Planners to simplify event organization. Create, plan, and attend events seamlessly.</p>
+        <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-lg me-2">Get Started - Sign Up</a>
+        <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-lg">Login</a>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-md-3 text-center">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">👑 Admins</h5>
+                <p class="card-text">Oversee users, events, and activities. Approve registrations and monitor the platform.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 text-center">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">🏠 Hosts</h5>
+                <p class="card-text">Create events, invite planners, manage guests, and compare proposals with ease.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 text-center">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">👥 Guests</h5>
+                <p class="card-text">Browse events, buy tickets, and manage your reservations effortlessly.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 text-center">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">🎨 Planners</h5>
+                <p class="card-text">View requirements, submit proposals, negotiate, and secure contracts.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 text-center">
+        <h3>How It Works</h3>
+        <p>Hosts create events → Planners bid → Guests book tickets → Admins moderate. Simple, secure, and scalable.</p>
+        <a href="{% url 'accounts:signup' %}" class="btn btn-success">Join Now</a>
+    </div>
+</div>
+{% endblock %}

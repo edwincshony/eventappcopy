@@ -1,0 +1,102 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Admin Dashboard - EventApp{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Admin Dashboard</h2>
+        <p>Welcome, Admin. Monitor and manage the platform.</p>
+        <a href="{% url 'adminpanel:pending_approvals' %}" class="btn btn-warning">Pending Approvals ({{ pending_approvals }})</a>
+        <a href="{% url 'adminpanel:activities' %}" class="btn btn-info">View Activities</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-center bg-primary text-white">
+            <div class="card-body">
+                <h5>Total Users</h5>
+                <h2>{{ total_users }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-success text-white">
+            <div class="card-body">
+                <h5>Hosts</h5>
+                <h2>{{ total_hosts }}</h2>
+                <a href="{% url 'adminpanel:user_list' 'host' %}" class="btn btn-light btn-sm">Manage</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-info text-white">
+            <div class="card-body">
+                <h5>Guests</h5>
+                <h2>{{ total_guests }}</h2>
+                <a href="{% url 'adminpanel:user_list' 'guest' %}" class="btn btn-light btn-sm">Manage</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-warning text-white">
+            <div class="card-body">
+                <h5>Planners</h5>
+                <h2>{{ total_planners }}</h2>
+                <a href="{% url 'adminpanel:user_list' 'planner' %}" class="btn btn-light btn-sm">Manage</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center bg-secondary text-white">
+            <div class="card-body">
+                <h5>Recent Registrations (30 days)</h5>
+                <h2>{{ recent_registrations }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-danger text-white">
+            <div class="card-body">
+                <h5>Total Events</h5>
+                <h2>{{ total_events }}</h2>
+                {% comment %} <a href="{% url 'adminpanel:event_list' %}" class="btn btn-light btn-sm">Manage</a>  {% endcomment %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-dark text-white">
+            <div class="card-body">
+                <h5>Total Tickets Sold</h5>
+                <h2>{{ total_tickets }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-light text-dark">
+            <div class="card-body">
+                <h5>Platform Status</h5>
+                <p>All systems operational.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Placeholder for Event Management -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Event Listings (Coming Soon)</h5>
+            </div>
+            <div class="card-body">
+                <p>View and manage all events (approve, delete). Integrated with Events app.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

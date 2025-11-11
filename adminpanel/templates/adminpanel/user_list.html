@@ -1,0 +1,63 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}{{ role }} Management - EventApp{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>{{ role }} Management</h2>
+        <a href="{% url 'adminpanel:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Mobile</th>
+                        <th>Date Joined</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.full_name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.mobile_number }}</td>
+                        <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                        <td>
+                            {% if user.role == 'planner' or user.role == 'guest' %}
+                                {% if user.is_approved %}<span class="badge bg-success">Approved</span>
+                                {% else %}<span class="badge bg-warning">Pending</span>{% endif %}
+                            {% else %}
+                                <span class="badge bg-info">Active</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.role == 'planner' or user.role == 'guest' %}
+                                {% if not user.is_approved %}
+                                    <a href="{% url 'adminpanel:approve_user' user.pk %}" class="btn btn-success btn-sm">Approve</a>
+                                    <a href="{% url 'adminpanel:reject_user' user.pk %}" class="btn btn-danger btn-sm">Reject</a>
+                                {% endif %}
+                            {% endif %}
+                            <a href="{% url 'adminpanel:user_edit' user.pk %}" class="btn btn-primary btn-sm">Edit</a>
+                            <a href="{% url 'adminpanel:user_delete' user.pk %}" class="btn btn-warning btn-sm" onclick="return confirm('Are you sure?')">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center">No {{ role|lower }} found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

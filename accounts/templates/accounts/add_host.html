@@ -1,0 +1,24 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Add Host - EventApp{% endblock %}
+
+{%load crispy_forms_tags%}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-center">Add New Host (Admin Only)</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="btn btn-primary w-100">Create Host & Send Credentials</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

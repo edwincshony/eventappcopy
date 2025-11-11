@@ -1,0 +1,23 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Delete User - EventApp{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3>Confirm Delete</h3>
+            </div>
+            <div class="card-body">
+                <p>Are you sure you want to delete "{{ object.username }}" ({{ object.role|title }})? This action cannot be undone.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                    <a href="{% url 'adminpanel:user_list' object.role %}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
