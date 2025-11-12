@@ -1,43 +1,174 @@
 {% extends 'accounts/base.html' %}
+{% load chat_filters %}
 
-{% block title %}Chat Rooms - EventApp{% endblock %}
+{% block title %}Chats - EventApp{% endblock %}
 
 {% block content %}
 <div class="row">
-    <div class="col-12">
-        <h2>My Chat Rooms</h2>
-        <a href="{% url 'accounts:home' %}" class="btn btn-secondary">Back to Home</a>
+    <div class="col-12 mb-4">
+        <h2>Start a Chat</h2>
+        <p class="text-muted">Select a user below to start or continue a conversation</p>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-12">
         <div class="card">
-            <div class="card-header">
-                <h5>Active Chats</h5>
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Available Users</h5>
             </div>
-            <div class="card-body">
-                {% if rooms %}
-                    <ul class="list-group">
-                        {% for room in rooms %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <a href="{% url 'chat:room_detail' room.pk %}">{{ room.name }}</a>
-                            <span class="badge bg-primary rounded-pill">{{ room.messages.count }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
+            <div class="card-body p-0">
+                {% if users %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if user.profile_picture %}
+                                                <img src="{{ user.profile_picture.url }}" 
+                                                     alt="{{ user.full_name }}" 
+                                                     class="rounded-circle me-2" 
+                                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="rounded-circle bg-secondary text-white me-2 d-flex align-items-center justify-content-center" 
+                                                     style="width: 40px; height: 40px;">
+                                                    <strong>{{ user.full_name|slice:":1"|upper }}</strong>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ user.full_name }}</strong><br>
+                                                <small class="text-muted">@{{ user.username }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if user.role == 'host' %}info{% elif user.role == 'guest' %}success{% else %}warning{% endif %}">
+                                            {{ user.role|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if user.id in room_map %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-chat-dots"></i> Active Chat
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">No Chat Yet</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        {% if user.id in room_map %}
+                                            <a href="{% url 'chat:room_detail' room_map|get_item:user.id|get_attr:'pk' %}" 
+                                               class="btn btn-primary btn-sm">
+                                                <i class="bi bi-chat-fill"></i> Continue Chat
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'chat:start_room' user.id %}" 
+                                               class="btn btn-success btn-sm">
+                                                <i class="bi bi-chat"></i> Start Chat
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 {% else %}
-                    <p>No active chats. Start one from an event or proposal.</p>
+                    <div class="text-center py-5">
+                        <p class="text-muted">No users available to chat with at the moment.</p>
+                    </div>
                 {% endif %}
             </div>
         </div>
     </div>
-    <div class="col-md-8">
+</div>
+
+{% if my_rooms %}
+<div class="row mt-4">
+    <div class="col-12">
         <div class="card">
-            <div class="card-body">
-                <p>Chats are for negotiating with hosts (planners) or guests (hosts). No admin access.</p>
+            {% comment %} <div class="card-header">
+                <h5 class="mb-0">Your Active Chats ({{ my_rooms.count }})</h5>
             </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for room in my_rooms %}
+                        {% with participants=room.participants.all %}
+                            {% for participant in participants %}
+                                {% if participant.id != user.id %}
+                                    <a href="{% url 'chat:room_detail' room.pk %}" 
+                                       class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">{{ participant.full_name }}</h6>
+                                                <small class="text-muted">
+                                                    {% if room.messages.last %}
+                                                        Last message: {{ room.messages.last.timestamp|timesince }} ago
+                                                    {% else %}
+                                                        No messages yet
+                                                    {% endif %}
+                                                </small>
+                                            </div>
+                                            {% if room.unread_count > 0 %}
+                                                <span class="badge bg-danger rounded-pill">
+                                                    {{ room.unread_count }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        {% endwith %}
+                    {% endfor %}
+                </div>
+            </div> {% endcomment %}
         </div>
     </div>
 </div>
+{% endif %}
+
+
+{% if is_paginated %}
+<div class="row mt-4">
+    <div class="col-12">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

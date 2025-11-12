@@ -23,16 +23,20 @@
                 <h3>{{ booking.event.name }}</h3>
                 <p><strong>Date:</strong> {{ booking.event.start_date|date:"M d, Y H:i" }} - {{ booking.event.end_date|date:"M d, Y H:i" }}</p>
                 <p><strong>Venue:</strong> {{ booking.event.venue_details }}</p>
-                <p><strong>Booking ID:</strong> {{ booking.booking_id }}</p>
-                <p><strong>Quantity:</strong> {{ booking.ticket_quantity }} | <strong>Amount:</strong> ₹{{ booking.total_amount }}</p>
+                <p><strong>Booking ID:</strong> {{ booking.bookingid }}</p>
+                <p><strong>Quantity:</strong> {{ booking.ticket_quantity }} | <strong>Amount:</strong> ₹{{ booking.totalamount }}</p>
                 <p><strong>Status:</strong> Confirmed</p>
                 <hr>
                 <div class="qr-placeholder">
                     <p>QR Code (Scan at Event):</p>
-                    <div style="border:1px solid #000; width:150px; height:150px; margin:0 auto; background:#fff;">
-                        <!-- Placeholder; real: <img src="{{ booking.qr_code.url }}"> -->
-                        <code>{{ booking.booking_id }}</code>
-                    </div>
+                    {% if booking.qrcode %}
+                        <!-- FIXED: Display actual QR code image -->
+                        <img src="{{ booking.qrcode.url }}" alt="QR Code" style="width:200px; height:200px; margin:0 auto;">
+                    {% else %}
+                        <div style="border:1px solid #000; width:150px; height:150px; margin:0 auto; background:#fff;">
+                            <code>{{ booking.bookingid }}</code>
+                        </div>
+                    {% endif %}
                 </div>
                 <p class="mt-3">Host can verify via Booking ID.</p>
             </div>

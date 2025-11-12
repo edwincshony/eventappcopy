@@ -7,6 +7,7 @@ from django.conf import settings
 from django.views.generic import ListView, UpdateView, DeleteView, TemplateView
 from django.urls import reverse_lazy
 from django.db.models import Count, Q
+from host.models import *
 from datetime import timedelta
 from django.utils import timezone
 from accounts.models import CustomUser
@@ -16,7 +17,31 @@ class AdminRequiredMixin(UserPassesTestMixin):
         return self.request.user.is_superuser
     def handle_no_permission(self):
         messages.warning(self.request, 'You do not have permission to access this page.')
-        return redirect('home')
+        return redirect('accounts:home')
+    
+
+class AdminEventListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
+    model = Event
+    template_name = 'adminpanel/event_list.html'
+    context_object_name = 'events'
+    paginate_by = 10
+
+    def get_queryset(self):
+        # Prefetch accepted proposals to avoid N+1 queries
+        return (
+            Event.objects.all()
+            .prefetch_related('proposals')
+            .order_by('-created_at')
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # For convenience, attach each event's accepted proposal (if any)
+        for event in context['events']:
+            event.accepted_proposal = event.proposals.filter(status='accepted').first()
+        return context
+
+
 
 class AdminDashboardView(LoginRequiredMixin, AdminRequiredMixin, TemplateView):
     template_name = 'adminpanel/dashboard.html'
@@ -33,8 +58,8 @@ class AdminDashboardView(LoginRequiredMixin, AdminRequiredMixin, TemplateView):
         context['pending_approvals'] = CustomUser.objects.filter(role__in=['guest', 'planner'], is_approved=False, is_active=False).count()
         context['recent_registrations'] = CustomUser.objects.filter(date_joined__gte=thirty_days_ago).count()
         # Placeholder for events/tickets (integrate later)
-        context['total_events'] = 0  # From events app
-        context['total_tickets'] = 0  # From events app
+        context['total_events'] = Event.objects.count()
+
         return context
 
 class PendingApprovalsView(LoginRequiredMixin, AdminRequiredMixin, ListView):

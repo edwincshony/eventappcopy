@@ -19,8 +19,8 @@
                 <p><strong>Next Steps:</strong></p>
                 {% if proposal.status == 'pending' %}
                     <p>Awaiting host review. You can <a href="{% url 'planner:proposal_edit' proposal.pk %}">edit</a> or <a href="{% url 'planner:proposal_delete' proposal.pk %}">delete</a> this proposal.</p>
-                {% elif proposal.status == 'accepted' %}
-                    <p>Congratulations! Contract secured. <a href="{% url 'chat:start' proposal.event.host.pk %}" class="btn btn-success">Negotiate Terms (Chat)</a></p>
+                {% comment %} {% elif proposal.status == 'accepted' %}
+                    <p>Congratulations! Contract secured. <a href="{% url 'chat:start' proposal.event.host.pk %}" class="btn btn-success">Negotiate Terms (Chat)</a></p> {% endcomment %}
                 {% else %}
                     <p>Proposal rejected. <a href="{% url 'planner:available_events' %}">Submit New</a></p>
                 {% endif %}

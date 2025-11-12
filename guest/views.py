@@ -5,17 +5,19 @@ from django.views.generic import ListView, DetailView, CreateView, TemplateView
 from django.urls import reverse_lazy
 from django.http import HttpResponse
 from django.utils import timezone
-from reportlab.pdfgen import canvas  # For simple PDF QR sim (install reportlab if needed; placeholder)
 from .models import Booking
 from .forms import BookingForm, PaymentForm
 from host.models import Event, Proposal
 
 class GuestRequiredMixin(UserPassesTestMixin):
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.role == 'guest' and self.request.user.is_approved
+        return (self.request.user.is_authenticated and 
+                self.request.user.role == 'guest' and 
+                self.request.user.is_approved)
+
     def handle_no_permission(self):
         messages.warning(self.request, 'You must be a logged-in and approved Guest to access this page.')
-        return redirect('home')
+        return redirect('accounts:home')
 
 class GuestDashboardView(LoginRequiredMixin, GuestRequiredMixin, ListView):
     model = Event
@@ -24,7 +26,6 @@ class GuestDashboardView(LoginRequiredMixin, GuestRequiredMixin, ListView):
     paginate_by = 6
 
     def get_queryset(self):
-        # Only confirmed events (with accepted proposal)
         confirmed_events = Event.objects.filter(
             proposals__status='accepted',
             start_date__gt=timezone.now()
@@ -61,7 +62,7 @@ class BookingCreateView(LoginRequiredMixin, GuestRequiredMixin, CreateView):
         event = get_object_or_404(Event, pk=self.kwargs['pk'])
         form.instance.guest = self.request.user
         form.instance.event = event
-        form.instance.total_amount = (event.budget / event.guest_count) * form.instance.ticket_quantity  # Approx price
+        form.instance.total_amount = (event.budget / event.guest_count) * form.instance.ticket_quantity
         self.object = form.save()
         messages.success(self.request, 'Booking confirmed! Proceed to payment.')
         return redirect('guest:payment_simulation', booking_id=self.object.booking_id)
@@ -82,21 +83,23 @@ class PaymentSimulationView(LoginRequiredMixin, GuestRequiredMixin, TemplateView
         booking_id = self.kwargs['booking_id']
         booking = get_object_or_404(Booking, booking_id=booking_id, guest=request.user)
         payment_form = PaymentForm(request.POST)
+        
         if payment_form.is_valid():
-            # Simulate success
-            messages.success(request, 'Payment successful! E-ticket generated.')
-            # Generate QR (placeholder)
-            booking.qr_code.name = f'bookings/{booking.booking_id}.png'  # Sim
+            # FIXED: Generate actual QR code
+            booking.generate_qr_code()
             booking.save()
+            
+            messages.success(request, 'Payment successful! E-ticket generated.')
             return redirect('guest:eticket', booking_id=booking.booking_id)
         else:
             context = self.get_context_data(**kwargs)
             context['payment_form'] = payment_form
             return render(request, self.template_name, context)
 
+
 class BookingListView(LoginRequiredMixin, GuestRequiredMixin, ListView):
     model = Booking
-    template_name = 'guest/booking_list.html'
+    template_name = 'guest/bookinglist.html'
     context_object_name = 'bookings'
 
     def get_queryset(self):
@@ -108,21 +111,26 @@ def cancel_booking(request, pk):
         booking.status = 'cancelled'
         booking.save()
         messages.success(request, 'Booking cancelled. Refund processed (simulated).')
-        return redirect('guest:booking_list')
-    return render(request, 'guest/booking_confirm_cancel.html', {'booking': booking})
+        return redirect('guest:bookinglist')
+    return render(request, 'guest/bookingconfirmcancel.html', {'booking': booking})
 
+# FIXED: ETicketView with proper UUID field handling
 class ETicketView(LoginRequiredMixin, GuestRequiredMixin, DetailView):
     model = Booking
     template_name = 'guest/eticket.html'
     context_object_name = 'booking'
+    slug_field = 'booking_id'
+    slug_url_kwarg = 'booking_id'
 
     def get_queryset(self):
         return Booking.objects.filter(guest=self.request.user)
 
     def get(self, request, *args, **kwargs):
         response = super().get(request, *args, **kwargs)
-        # Make downloadable PDF sim (placeholder HTML printable)
+        # Optional: Make downloadable PDF (placeholder HTML printable)
         return response
+
+
 
     # For download: Add PDF response if reportlab
     # def render_to_response(self, context, **response_kwargs):

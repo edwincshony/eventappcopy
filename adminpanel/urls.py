@@ -14,4 +14,6 @@ urlpatterns = [
     path('activities/', views.ActivitiesView.as_view(), name='activities'),
     # Placeholder for events
     # path('events/', views.EventListView.as_view(), name='event_list'),
+    path('events/', views.AdminEventListView.as_view(), name='event_list'),
+
 ]

@@ -13,7 +13,9 @@ class HostRequiredMixin(UserPassesTestMixin):
         return self.request.user.is_authenticated and self.request.user.role == 'host'
     def handle_no_permission(self):
         messages.warning(self.request, 'You must be a logged-in Host to access this page.')
-        return redirect('home')
+        return redirect('accounts:home')
+
+
 
 class HostDashboardView(LoginRequiredMixin, HostRequiredMixin, ListView):
     model = Event
