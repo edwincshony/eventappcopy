@@ -1,0 +1,49 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Planner Dashboard - EventApp{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Welcome, {{ user.full_name }} (Planner)</h2>
+        <p>View available events, submit proposals, and track your submissions.</p>
+        <a href="{% url 'planner:available_events' %}" class="btn btn-primary">Browse Available Events ({{ open_events_count }})</a>
+        <a href="{% url 'planner:proposal_list' %}" class="btn btn-info">My Proposals</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Proposals</h5>
+            </div>
+            <div class="card-body">
+                {% if proposals %}
+                    <ul class="list-group">
+                        {% for proposal in proposals|slice:":5" %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ proposal.event.name }}
+                            <span class="badge bg-{% if proposal.status == 'pending' %}warning{% elif proposal.status == 'accepted' %}success{% else %}danger{% endif %}">{{ proposal.status|title }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No proposals yet. <a href="{% url 'planner:available_events' %}">Submit one</a>.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Stats</h5>
+            </div>
+            <div class="card-body">
+                <p>Total Proposals: <strong>{{ proposals.count }}</strong></p>
+                <p>Open Events: <strong>{{ open_events_count }}</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

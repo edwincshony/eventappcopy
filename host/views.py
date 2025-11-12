@@ -62,24 +62,26 @@ class EventUpdateView(LoginRequiredMixin, HostRequiredMixin, UpdateView):
         messages.success(self.request, 'Event updated successfully.')
         return super().form_valid(form)
 
-class EventDeleteView(LoginRequiredMixin, HostRequiredMixin, DeleteView):
-    model = Event
-    template_name = 'host/event_confirm_delete.html'
-    success_url = reverse_lazy('host:event_list')
 
-    def get_queryset(self):
-        return Event.objects.filter(host=self.request.user)
+from django.views.decorators.http import require_POST
 
-    def delete(self, request, *args, **kwargs):
-        messages.error(request, 'Event deleted successfully.')
-        return super().delete(request, *args, **kwargs)
+@require_POST
+def event_delete(request, pk):
+    event = get_object_or_404(Event, pk=pk, host=request.user)
+    event.delete()
+    messages.error(request, 'Event deleted successfully.')
+    return redirect('host:event_list')
+
 
 class EventDetailView(LoginRequiredMixin, HostRequiredMixin, DetailView):
     model = Event
     template_name = 'host/event_details.html'  # Optional; add if needed
 
-    def get_queryset(self):
-        return Event.objects.filter(host=self.request.user)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        needs = self.object.needs
+        context["needs_list"] = needs.split(",") if needs else []
+        return context
 
 class GuestListView(LoginRequiredMixin, HostRequiredMixin, ListView):
     model = CustomUser
@@ -108,16 +110,26 @@ class ProposalsView(LoginRequiredMixin, HostRequiredMixin, ListView):
     def get_queryset(self):
         return Proposal.objects.filter(event__host=self.request.user).order_by('-created_at')
 
+from django.utils.http import urlencode
+
 def accept_proposal(request, pk):
     proposal = get_object_or_404(Proposal, pk=pk, event__host=request.user)
-    if request.method == 'POST':
-        form = ProposalAcceptForm(request.POST, instance=proposal)
-        if form.is_valid():
-            form.save()
-            status = proposal.status
-            messages.success(request, f'Proposal {status} successfully.')
-            # Notify planner via email (expand in notifications)
-            return redirect('host:proposals')
+    status = request.GET.get('status', 'accepted')  # Default to accepted
+
+    if proposal.status != 'pending':  # Prevent re-approving
+        messages.warning(request, 'This proposal has already been processed.')
+        return redirect('host:proposals')
+
+    if status == 'accepted':
+        proposal.status = 'accepted'
+        messages.success(request, f'Proposal for "{proposal.event.name}" has been accepted.')
+    elif status == 'rejected':
+        proposal.status = 'rejected'
+        messages.error(request, f'Proposal for "{proposal.event.name}" has been rejected.')
     else:
-        form = ProposalAcceptForm(instance=proposal)
-    return render(request, 'host/proposal_action.html', {'form': form, 'proposal': proposal})
+        messages.warning(request, 'Invalid status.')
+        return redirect('host:proposals')
+
+    proposal.save()
+    # Optionally: send notification/email to planner here
+    return redirect('host:proposals')

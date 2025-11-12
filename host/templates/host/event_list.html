@@ -36,7 +36,13 @@
                         <td>
                             <a href="{% url 'host:event_detail' event.pk %}" class="btn btn-sm btn-outline-primary">View</a>
                             <a href="{% url 'host:event_edit' event.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
-                            <a href="{% url 'host:event_delete' event.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+<form action="{% url 'host:event_delete' event.pk %}" method="POST" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-sm btn-outline-danger"
+        onclick="return confirm('Are you sure you want to delete this event?');">
+        Delete
+    </button>
+</form>
                         </td>
                     </tr>
                     {% empty %}

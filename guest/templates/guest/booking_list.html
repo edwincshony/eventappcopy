@@ -1,0 +1,52 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}My Bookings - EventApp{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>My Bookings</h2>
+        <a href="{% url 'guest:dashboard' %}" class="btn btn-secondary">Back to Events</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Event</th>
+                        <th>Date</th>
+                        <th>Quantity</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                    <tr>
+                        <td>{{ booking.booking_id|slice:":8" }}...</td>
+                        <td>{{ booking.event.name }}</td>
+                        <td>{{ booking.created_at|date:"M d, Y" }}</td>
+                        <td>{{ booking.ticket_quantity }}</td>
+                        <td>₹{{ booking.total_amount }}</td>
+                        <td><span class="badge bg-{% if booking.status == 'confirmed' %}success{% else %}danger{% endif %}">{{ booking.status|title }}</span></td>
+                        <td>
+                            {% if booking.status == 'confirmed' %}
+                                <a href="{% url 'guest:eticket' booking.booking_id %}" class="btn btn-sm btn-info">Download E-Ticket</a>
+                                <a href="{% url 'guest:cancel_booking' booking.pk %}" class="btn btn-sm btn-warning">Cancel</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center">No bookings yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

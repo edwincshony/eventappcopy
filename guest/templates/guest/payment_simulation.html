@@ -1,0 +1,28 @@
+{% extends 'accounts/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Payment - EventApp{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <h3>Payment Simulation (Razorpay Style)</h3>
+                <p>Amount: ₹{{ amount }}</p>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ payment_form|crispy }}
+                    <button type="submit" class="btn btn-success w-100">Pay Now</button>
+                </form>
+                <div class="alert alert-info mt-3">
+                    <small>This is a simulation. Enter dummy details (e.g., Card: 4111111111111111, Expiry: 12/25, CVV: 123).</small>
+                </div>
+                <a href="{% url 'guest:event_detail' booking.event.pk %}" class="btn btn-secondary w-100 mt-2">Back</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

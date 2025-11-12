@@ -49,7 +49,10 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'accounts',
     'adminpanel',
-    'host'
+    'host',
+    'guest',
+    'planner',
+    'notifications',
 
 ]
 

@@ -10,7 +10,11 @@
             <h4 class="mb-0">{{ object.name }}</h4>
             <div>
                 {% comment %} <a href="{% url 'host:event_update' object.id %}" class="btn btn-sm btn-warning me-2">Edit</a> {% endcomment %}
-                <a href="{% url 'host:event_delete' object.id %}" class="btn btn-sm btn-danger">Delete</a>
+            <a href="{% url 'host:event_delete' object.id %}"
+            class="btn btn-sm btn-danger"
+            onclick="return confirm('Are you sure you want to delete this event?');">
+            Delete
+            </a>
             </div>
         </div>
 
@@ -44,15 +48,17 @@
             </div>
 
             <h5 class="card-title text-primary mt-4 mb-3">Selected Services</h5>
-            {% if object.needs %}
-                <ul class="list-group list-group-flush mb-4">
-                    {% for need in object.needs %}
-                        <li class="list-group-item">{{ need }}</li>
-                    {% endfor %}
-                </ul>
-            {% else %}
+                {% if needs_list %}
+               <div class="mb-4">
+    {% for need in needs_list %}
+        <span class="badge bg-primary me-2">{{ need }}</span>
+    {% endfor %}
+</div>
+
+                {% else %}
                 <p class="text-muted">No services selected.</p>
-            {% endif %}
+                {% endif %}
+
 
             <h5 class="card-title text-primary mt-4 mb-3">Venue Details</h5>
             <p>{{ object.venue_details|linebreaks }}</p>

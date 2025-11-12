@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 
+
 class Event(models.Model):
     NEEDS_CHOICES = [
         ('catering', 'Catering'),
@@ -17,7 +18,8 @@ class Event(models.Model):
     end_date = models.DateTimeField()
     budget = models.DecimalField(max_digits=10, decimal_places=2)
     guest_count = models.PositiveIntegerField()
-    needs = models.CharField(max_length=255, choices=NEEDS_CHOICES, blank=True)  # Comma-separated for multi
+    needs = models.CharField(max_length=255, blank=True)
+   
     banner = models.ImageField(upload_to='events/', blank=True, null=True)
     venue_details = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

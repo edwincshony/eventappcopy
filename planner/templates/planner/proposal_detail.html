@@ -1,0 +1,32 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Proposal Details - EventApp{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>Proposal for {{ proposal.event.name }}</h3>
+                <p class="text-muted">Status: <span class="badge bg-{% if proposal.status == 'pending' %}warning{% elif proposal.status == 'accepted' %}success{% else %}danger{% endif %}">{{ proposal.status|title }}</span></p>
+            </div>
+            <div class="card-body">
+                <p><strong>Amount:</strong> ₹{{ proposal.amount }}</p>
+                <p><strong>Services:</strong> {{ proposal.services }}</p>
+                <p><strong>Timeline:</strong> {{ proposal.timeline }}</p>
+                <p><strong>Submitted:</strong> {{ proposal.created_at|date:"M d, Y H:i" }}</p>
+                <hr>
+                <p><strong>Next Steps:</strong></p>
+                {% if proposal.status == 'pending' %}
+                    <p>Awaiting host review. You can <a href="{% url 'planner:proposal_edit' proposal.pk %}">edit</a> or <a href="{% url 'planner:proposal_delete' proposal.pk %}">delete</a> this proposal.</p>
+                {% elif proposal.status == 'accepted' %}
+                    <p>Congratulations! Contract secured. <a href="{% url 'chat:start' proposal.event.host.pk %}" class="btn btn-success">Negotiate Terms (Chat)</a></p>
+                {% else %}
+                    <p>Proposal rejected. <a href="{% url 'planner:available_events' %}">Submit New</a></p>
+                {% endif %}
+                <a href="{% url 'planner:proposal_list' %}" class="btn btn-secondary">Back to Proposals</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

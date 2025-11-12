@@ -25,4 +25,7 @@ urlpatterns = [
     path('', include('accounts.urls', namespace='accounts')),
     path('adminpanel/', include('adminpanel.urls', namespace='adminpanel')),
     path('host/', include('host.urls', namespace='host')),
+    path('guest/', include('guest.urls', namespace='guest')),
+    path('planner/', include('planner.urls', namespace='planner')),
+    path('notifications/', include('notifications.urls', namespace='notifications')),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -62,9 +62,9 @@ class CustomLoginView(LoginView):
         elif user.role == 'host':
             return redirect('host:dashboard')
         elif user.role == 'planner':
-            return redirect('planner_dashboard')
+            return redirect('planner:dashboard')
         elif user.role == 'guest':
-            return redirect('guest_dashboard')
+            return redirect('guest:dashboard')
         else:
             return redirect('accounts:home')  # fallback
 

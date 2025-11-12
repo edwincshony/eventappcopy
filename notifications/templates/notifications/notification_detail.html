@@ -1,0 +1,33 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Notification Detail - EventApp{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>{{ notification.get_notification_type_display }}</h3>
+                <p class="text-muted">{{ notification.created_at|date:"M d, Y H:i" }}</p>
+            </div>
+            <div class="card-body">
+                <p>{{ notification.message }}</p>
+                {% if notification.related_object %}
+                    <hr>
+                    <h5>Related Item:</h5>
+                    {% if notification.related_model == 'host.proposal' %}
+                        <p><strong>Proposal Amount:</strong> ₹{{ notification.related_object.amount }}</p>
+                        <p><strong>Event:</strong> {{ notification.related_object.event.name }}</p>
+                    {% elif notification.related_model == 'guest.booking' %}
+                        <p><strong>Booking ID:</strong> {{ notification.related_object.booking_id }}</p>
+                        <p><strong>Event:</strong> {{ notification.related_object.event.name }}</p>
+                    {% elif notification.related_model == 'host.event' %}
+                        <p><strong>Event:</strong> {{ notification.related_object.name }}</p>
+                    {% endif %}
+                {% endif %}
+                <a href="{% url 'notifications:notification_list' %}" class="btn btn-secondary">Back to List</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

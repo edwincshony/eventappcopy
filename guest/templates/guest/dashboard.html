@@ -1,0 +1,36 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Guest Dashboard - EventApp{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Welcome, {{ user.full_name }} (Guest)</h2>
+        <p>Browse upcoming events and manage your bookings.</p>
+        <a href="{% url 'guest:booking_list' %}" class="btn btn-info">My Bookings</a>
+    </div>
+</div>
+
+<div class="row">
+    {% for event in events %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            {% if event.banner %}
+            <img src="{{ event.banner.url }}" class="card-img-top" alt="{{ event.name }}">
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ event.name }}</h5>
+                <p class="card-text">{{ event.venue_details|truncatewords:10 }}</p>
+                <p><strong>Date:</strong> {{ event.start_date|date:"M d, Y" }} - {{ event.end_date|date:"M d, Y" }}</p>
+                <p><strong>Guests:</strong> {{ event.guest_count }}</p>
+                <a href="{% url 'guest:event_detail' event.pk %}" class="btn btn-primary">View Details & Buy Ticket</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <p>No upcoming events. Check back soon!</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

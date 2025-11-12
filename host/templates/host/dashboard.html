@@ -16,29 +16,7 @@
 
 <div class="row">
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5>My Events</h5>
-            </div>
-            <div class="card-body">
-                {% if events %}
-                    <ul class="list-group">
-                        {% for event in events %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ event.name }}
-                            <span>
-                                <a href="{% url 'host:event_detail' event.pk %}" class="btn btn-sm btn-outline-primary">View</a>
-                                <a href="{% url 'host:event_edit' event.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
-                                <a href="{% url 'host:event_delete' event.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
-                            </span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p>No events yet. <a href="{% url 'host:event_add' %}">Create one</a>.</p>
-                {% endif %}
-            </div>
-        </div>
+
     </div>
     <div class="col-md-6">
         <div class="card">

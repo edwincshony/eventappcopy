@@ -16,12 +16,14 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th>Event</th>
-                        <th>Planner</th>
-                        <th>Amount</th>
-                        <th>Services</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                    <th>Event</th>
+                    <th>Planner</th>
+                    <th>Event Budget</th>
+                    <th>Proposed Amount</th>
+                    <th>Services</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+
                     </tr>
                 </thead>
                 <tbody>
@@ -29,15 +31,27 @@
                     <tr>
                         <td>{{ proposal.event.name }}</td>
                         <td>{{ proposal.planner.full_name }}</td>
+                        <td>₹{{ proposal.event.budget|floatformat:0 }}</td>
+
                         <td>₹{{ proposal.amount }}</td>
                         <td>{{ proposal.services|truncatewords:5 }}</td>
                         <td><span class="badge bg-{% if proposal.status == 'pending' %}warning{% elif proposal.status == 'accepted' %}success{% else %}danger{% endif %}">{{ proposal.status|title }}</span></td>
-                        <td>
-                            {% if proposal.status == 'pending' %}
-                                <a href="{% url 'host:accept_proposal' proposal.pk %}" class="btn btn-sm btn-success">Accept</a>
-                                <a href="{% url 'host:accept_proposal' proposal.pk %}?status=rejected" class="btn btn-sm btn-danger">Reject</a>
-                            {% endif %}
-                        </td>
+<td>
+    {% if proposal.status == 'pending' %}
+        <a href="{% url 'host:accept_proposal' proposal.pk %}"
+           class="btn btn-sm btn-success"
+           onclick="return confirm('Are you sure you want to ACCEPT this proposal?');">
+           Accept
+        </a>
+
+        <a href="{% url 'host:accept_proposal' proposal.pk %}?status=rejected"
+           class="btn btn-sm btn-danger"
+           onclick="return confirm('Are you sure you want to REJECT this proposal?');">
+           Reject
+        </a>
+    {% endif %}
+</td>
+
                     </tr>
                     {% empty %}
                     <tr><td colspan="6" class="text-center">No proposals yet.</td></tr>

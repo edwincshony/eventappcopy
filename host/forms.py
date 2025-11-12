@@ -45,6 +45,7 @@ class EventForm(forms.ModelForm):
         cleaned_data['needs'] = ','.join(needs)
         return cleaned_data
 
+
 class ProposalAcceptForm(forms.ModelForm):
     class Meta:
         model = Proposal
