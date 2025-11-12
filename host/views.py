@@ -7,6 +7,8 @@ from django.db.models import Q
 from .models import Event, Proposal
 from .forms import EventForm, ProposalAcceptForm
 from accounts.models import CustomUser
+from utils.pagination import paginate_queryset  # your global paginator
+
 
 class HostRequiredMixin(UserPassesTestMixin):
     def test_func(self):
@@ -135,3 +137,48 @@ def accept_proposal(request, pk):
     proposal.save()
     # Optionally: send notification/email to planner here
     return redirect('host:proposals')
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from guest.models import Booking  # Adjust import path if needed
+
+from django.views.generic import TemplateView
+
+class QRScannerView(LoginRequiredMixin, HostRequiredMixin, TemplateView):
+    template_name = 'host/qr_scanner.html'
+
+
+@csrf_exempt
+def verify_qr_code(request):
+    """POST endpoint to verify QR codes scanned by camera."""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
+
+    data = request.POST.get('qr_data')
+    if not data:
+        return JsonResponse({'success': False, 'message': 'No QR data received'}, status=400)
+
+    try:
+        booking = Booking.objects.get(booking_id=data)
+    except Booking.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Invalid or unknown QR code'}, status=404)
+
+    # Host can only scan guests for their own events
+    if booking.event.host != request.user:
+        return JsonResponse({'success': False, 'message': 'You are not authorized for this event'}, status=403)
+
+    if booking.is_used:
+        return JsonResponse({
+            'success': False,
+            'message': f'Ticket already used on {booking.scanned_at.strftime("%Y-%m-%d %H:%M:%S")}'
+        })
+
+    booking.mark_as_used()
+    return JsonResponse({
+        'success': True,
+        'guest': booking.guest.full_name,
+        'event': booking.event.name,
+        'tickets': booking.ticket_quantity,
+        'message': 'Entry confirmed. Ticket marked as used.'
+    })
+

@@ -4,10 +4,13 @@ from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, TemplateView
 from django.urls import reverse_lazy
 from django.http import HttpResponse
+from django.db import models
 from django.utils import timezone
 from .models import Booking
 from .forms import BookingForm, PaymentForm
 from host.models import Event, Proposal
+from utils.pagination import paginate_queryset  # your global paginator
+
 
 class GuestRequiredMixin(UserPassesTestMixin):
     def test_func(self):
@@ -60,12 +63,26 @@ class BookingCreateView(LoginRequiredMixin, GuestRequiredMixin, CreateView):
 
     def form_valid(self, form):
         event = get_object_or_404(Event, pk=self.kwargs['pk'])
+        
+        confirmed_bookings = Booking.objects.filter(event=event, status='confirmed')
+        total_booked = confirmed_bookings.aggregate(models.Sum('ticket_quantity'))['ticket_quantity__sum'] or 0
+        remaining = event.guest_count - total_booked
+
+        if remaining <= 0:
+            messages.warning(self.request, f"Bookings for '{event.name}' are full.")
+            return redirect('guest:dashboard')
+
+        if form.instance.ticket_quantity > remaining:
+            messages.warning(self.request, f"Only {remaining} tickets left for '{event.name}'. Please adjust your quantity.")
+            return redirect('guest:booking_form', pk=event.pk)
+
         form.instance.guest = self.request.user
         form.instance.event = event
         form.instance.total_amount = (event.budget / event.guest_count) * form.instance.ticket_quantity
         self.object = form.save()
         messages.success(self.request, 'Booking confirmed! Proceed to payment.')
         return redirect('guest:payment_simulation', booking_id=self.object.booking_id)
+
 
 class PaymentSimulationView(LoginRequiredMixin, GuestRequiredMixin, TemplateView):
     template_name = 'guest/payment_simulation.html'
@@ -99,11 +116,19 @@ class PaymentSimulationView(LoginRequiredMixin, GuestRequiredMixin, TemplateView
 
 class BookingListView(LoginRequiredMixin, GuestRequiredMixin, ListView):
     model = Booking
-    template_name = 'guest/bookinglist.html'
+    template_name = 'guest/booking_list.html'
     context_object_name = 'bookings'
 
     def get_queryset(self):
         return Booking.objects.filter(guest=self.request.user).order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queryset = self.get_queryset()
+        page_obj, paginated_bookings = paginate_queryset(self.request, queryset)
+        context['bookings'] = paginated_bookings
+        context['page_obj'] = page_obj  # for pagination controls
+        return context
 
 def cancel_booking(request, pk):
     booking = get_object_or_404(Booking, pk=pk, guest=request.user, status='confirmed')
@@ -111,8 +136,8 @@ def cancel_booking(request, pk):
         booking.status = 'cancelled'
         booking.save()
         messages.success(request, 'Booking cancelled. Refund processed (simulated).')
-        return redirect('guest:bookinglist')
-    return render(request, 'guest/bookingconfirmcancel.html', {'booking': booking})
+        return redirect('guest:booking_list')
+    return render(request, 'guest/booking_confirm_cancel.html', {'booking': booking})
 
 # FIXED: ETicketView with proper UUID field handling
 class ETicketView(LoginRequiredMixin, GuestRequiredMixin, DetailView):

@@ -7,6 +7,8 @@ from django.utils import timezone
 from .forms import ProposalForm
 from django.db.models import Q
 from host.models import Event, Proposal
+from utils.pagination import paginate_queryset  # your global paginator
+
 
 class PlannerRequiredMixin(UserPassesTestMixin):
     def test_func(self):

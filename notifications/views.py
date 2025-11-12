@@ -4,6 +4,8 @@ from django.contrib import messages
 from django.views.generic import ListView, DetailView
 from django.urls import reverse_lazy
 from .models import Notification
+from utils.pagination import paginate_queryset  # your global paginator
+
 
 class NotificationListView(LoginRequiredMixin, ListView):
     model = Notification

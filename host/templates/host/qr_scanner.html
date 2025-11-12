@@ -1,0 +1,44 @@
+{% extends 'accounts/base.html' %}
+{% block content %}
+<h2>QR Code Scanner</h2>
+<p>Allow camera access to start scanning tickets.</p>
+
+<div id="qr-reader" style="width: 500px;"></div>
+<div id="qr-result" style="margin-top: 20px;"></div>
+
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script>
+const qrReader = new Html5Qrcode("qr-reader");
+
+function onScanSuccess(decodedText) {
+    // Send to Django for verification
+    fetch("{% url 'host:verify_qr' %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({ qr_data: decodedText })
+    })
+    .then(response => response.json())
+    .then(data => {
+        const resultDiv = document.getElementById("qr-result");
+        if (data.success) {
+            resultDiv.innerHTML = `
+                <div style="color: green;">
+                    ✅ ${data.message}<br>
+                    Guest: ${data.guest}<br>
+                    Event: ${data.event}<br>
+                    Tickets: ${data.tickets}
+                </div>`;
+        } else {
+            resultDiv.innerHTML = `<div style="color: red;">❌ ${data.message}</div>`;
+        }
+    })
+    .catch(err => console.error(err));
+}
+
+// Start camera
+qrReader.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess);
+</script>
+{% endblock %}

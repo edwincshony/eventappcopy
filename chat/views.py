@@ -10,6 +10,8 @@ from .models import Room, Message
 from .forms import MessageForm
 from notifications.models import Notification
 from accounts.models import CustomUser
+from utils.pagination import paginate_queryset  # your global paginator
+
 
 # Get the User model
 User = get_user_model()

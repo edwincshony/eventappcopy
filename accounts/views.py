@@ -18,6 +18,8 @@ from django.contrib.auth.decorators import login_required
 import secrets
 import string
 from .forms import SignUpForm, ProfileUpdateForm
+from utils.pagination import paginate_queryset  # your global paginator
+
 
 class HomeView(TemplateView):
     template_name = 'accounts/home.html'

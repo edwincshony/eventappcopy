@@ -14,4 +14,6 @@ urlpatterns = [
     path('planners/', views.PlannerListView.as_view(), name='planner_list'),
     path('proposals/', views.ProposalsView.as_view(), name='proposals'),
     path('proposals/<int:pk>/accept/', views.accept_proposal, name='accept_proposal'),
+    path('qr-scanner/', views.QRScannerView.as_view(), name='qr_scanner'),
+    path('verify-qr/', views.verify_qr_code, name='verify_qr'),
 ]

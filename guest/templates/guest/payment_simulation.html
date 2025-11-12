@@ -8,21 +8,68 @@
     <div class="col-md-6">
         <div class="card border-primary">
             <div class="card-header bg-primary text-white">
-                <h3>Payment Simulation (Razorpay Style)</h3>
+                <h3>Payment Simulation</h3>
                 <p>Amount: ₹{{ amount }}</p>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" id="paymentForm">
                     {% csrf_token %}
                     {{ payment_form|crispy }}
                     <button type="submit" class="btn btn-success w-100">Pay Now</button>
                 </form>
-                <div class="alert alert-info mt-3">
-                    <small>This is a simulation. Enter dummy details (e.g., Card: 4111111111111111, Expiry: 12/25, CVV: 123).</small>
-                </div>
                 <a href="{% url 'guest:event_detail' booking.event.pk %}" class="btn btn-secondary w-100 mt-2">Back</a>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Card number auto spacing
+    const cardInput = document.querySelector('input[name="card_number"]');
+    if (cardInput) {
+        cardInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, ''); // digits only
+            value = value.substring(0, 16);
+            // add space every 4 digits
+            e.target.value = value.replace(/(.{4})/g, '$1 ').trim();
+        });
+    }
+
+    // Expiry date formatting + validation
+    const expiryInput = document.querySelector('input[name="expiry_date"]');
+    if (expiryInput) {
+        expiryInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, ''); // digits only
+            if (value.length > 2) {
+                value = value.substring(0, 4);
+                e.target.value = value.slice(0, 2) + '/' + value.slice(2);
+            } else {
+                e.target.value = value;
+            }
+        });
+
+        expiryInput.addEventListener('blur', function(e) {
+            const value = e.target.value;
+            if (!/^\d{2}\/\d{2}$/.test(value)) {
+                alert('Invalid format. Use MM/YY.');
+                e.target.focus();
+                return;
+            }
+
+            const [month, year] = value.split('/').map(Number);
+            if (month < 1 || month > 12) {
+                alert('Invalid month.');
+                e.target.focus();
+                return;
+            }
+
+            if (year < 25) {
+                alert('Year must be 25 or later.');
+                e.target.focus();
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

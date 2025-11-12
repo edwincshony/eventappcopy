@@ -11,6 +11,7 @@ from host.models import *
 from datetime import timedelta
 from django.utils import timezone
 from accounts.models import CustomUser
+from utils.pagination import paginate_queryset  # your global paginator
 
 class AdminRequiredMixin(UserPassesTestMixin):
     def test_func(self):

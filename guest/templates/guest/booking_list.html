@@ -37,7 +37,10 @@
                         <td>
                             {% if booking.status == 'confirmed' %}
                                 <a href="{% url 'guest:eticket' booking.booking_id %}" class="btn btn-sm btn-info">Download E-Ticket</a>
-                                <a href="{% url 'guest:cancel_booking' booking.pk %}" class="btn btn-sm btn-warning">Cancel</a>
+<form action="{% url 'guest:cancel_booking' booking.pk %}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-sm btn-warning">Cancel</button>
+</form>
                             {% endif %}
                         </td>
                     </tr>
@@ -49,4 +52,6 @@
         </div>
     </div>
 </div>
+{% include 'partials/pagination.html' %}
+
 {% endblock %}
