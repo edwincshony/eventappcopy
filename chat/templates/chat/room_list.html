@@ -1,0 +1,43 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Chat Rooms - EventApp{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>My Chat Rooms</h2>
+        <a href="{% url 'accounts:home' %}" class="btn btn-secondary">Back to Home</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Active Chats</h5>
+            </div>
+            <div class="card-body">
+                {% if rooms %}
+                    <ul class="list-group">
+                        {% for room in rooms %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="{% url 'chat:room_detail' room.pk %}">{{ room.name }}</a>
+                            <span class="badge bg-primary rounded-pill">{{ room.messages.count }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No active chats. Start one from an event or proposal.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <p>Chats are for negotiating with hosts (planners) or guests (hosts). No admin access.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

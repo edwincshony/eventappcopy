@@ -28,4 +28,6 @@ urlpatterns = [
     path('guest/', include('guest.urls', namespace='guest')),
     path('planner/', include('planner.urls', namespace='planner')),
     path('notifications/', include('notifications.urls', namespace='notifications')),
+    path('chat/', include('chat.urls', namespace='chat')),
+
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

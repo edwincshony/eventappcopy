@@ -51,6 +51,8 @@
                         {% if user.role == 'guest' %}
                             <li class="nav-item"><a class="nav-link" href="{% url 'guest:dashboard' %}">Dashboard</a></li>
                             <li class="nav-item"><a class="nav-link" href="{% url 'accounts:profile_edit' %}">Profile</a></li>
+                                                        <li class="nav-item"><a class="nav-link" href="{% url 'chat:room_list' %}">Chats</a></li>
+
                             <li class="nav-item"><a class="nav-link" href="{% url 'notifications:notification_list' %}">Notifications</a></li>
 
                             <li class="nav-item"><a class="nav-link" href="{% url 'accounts:password_change' %}">Change Password</a></li>
@@ -58,6 +60,8 @@
                             <li class="nav-item"><a class="nav-link" href="{% url 'host:dashboard' %}">Dashboard</a></li>
                             <li class="nav-item"><a class="nav-link" href="{% url 'accounts:profile_edit' %}">Profile</a></li>
                             <li class="nav-item"><a class="nav-link" href="{% url 'host:event_list' %}">My Events</a></li>
+                                                                                    <li class="nav-item"><a class="nav-link" href="{% url 'chat:room_list' %}">Chats</a></li>
+
                                                         <li class="nav-item"><a class="nav-link" href="{% url 'notifications:notification_list' %}">Notifications</a></li>
 
                             <li class="nav-item"><a class="nav-link" href="{% url 'accounts:password_change' %}">Change Password</a></li>
@@ -65,11 +69,15 @@
                             <li class="nav-item"><a class="nav-link" href="{% url 'planner:dashboard' %}">Dashboard</a></li>
                             <li class="nav-item"><a class="nav-link" href="{% url 'accounts:profile_edit' %}">Profile</a></li>
                             <li class="nav-item"><a class="nav-link" href="{% url 'notifications:notification_list' %}">Notifications</a></li>
+                                                                                    <li class="nav-item"><a class="nav-link" href="{% url 'chat:room_list' %}">Chats</a></li>
+
 
                             <li class="nav-item"><a class="nav-link" href="{% url 'accounts:password_change' %}">Change Password</a></li>
                         {% elif user.is_superuser %}
                             <li class="nav-item"><a class="nav-link" href="{% url 'adminpanel:dashboard' %}">Admin Panel</a></li>
                             <li class="nav-item"><a class="nav-link" href="{% url 'accounts:add_host' %}">Add Host</a></li>
+                                                                                    <li class="nav-item"><a class="nav-link" href="{% url 'chat:room_list' %}">Chats</a></li>
+
                                                         <li class="nav-item"><a class="nav-link" href="{% url 'notifications:notification_list' %}">Notifications</a></li>
 
                         {% endif %}

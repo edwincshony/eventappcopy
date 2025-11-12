@@ -26,28 +26,33 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for proposal in proposals %}
-                    <tr>
-                        <td>{{ proposal.event.name }}</td>
-                        <td>₹{{ proposal.amount }}</td>
-                        <td>{{ proposal.services|truncatewords:5 }}</td>
-                        <td>{{ proposal.timeline }}</td>
-                        <td><span class="badge bg-{% if proposal.status == 'pending' %}warning{% elif proposal.status == 'accepted' %}success{% else %}danger{% endif %}">{{ proposal.status|title }}</span></td>
-<td>
-    {% if proposal.status == 'pending' %}
-        <a href="{% url 'planner:proposal_edit' proposal.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
-        <a href="{% url 'planner:proposal_delete' proposal.pk %}" class="btn btn-sm btn-outline-danger"
-           onclick="return confirm('Are you sure you want to delete this proposal?');">Delete</a>
-    {% else %}
-        <span class="text-muted">Processed</span>
-    {% endif %}
-    <a href="{% url 'planner:proposal_detail' proposal.pk %}" class="btn btn-sm btn-outline-primary">Track</a>
-</td>
+                    <tbody>
+    {% for proposal in proposals %}
+    <tr>
+        <td>{{ proposal.event.name }}</td>
+        <td>{{ proposal.amount }}</td>
+        <td>{{ proposal.services|truncatewords:5 }}</td>
+        <td>{{ proposal.timeline }}</td>
+        <td>
+            <span class="badge bg-{% if proposal.status == 'pending' %}warning{% elif proposal.status == 'accepted' %}success{% else %}danger{% endif %}">
+                {{ proposal.status|title }}
+            </span>
+        </td>
+        <td>
+            {% if proposal.status == 'pending' %}
+                <a href="{% url 'planner:proposal_edit' proposal.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                <a href="{% url 'planner:proposal_delete' proposal.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+            {% else %}
+                <span class="text-muted">No actions available</span>
+            {% endif %}
+            <a href="{% url 'planner:proposal_detail' proposal.pk %}" class="btn btn-sm btn-outline-primary">View Details</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6" class="text-center">No proposals submitted.</td></tr>
+    {% endfor %}
+</tbody>
 
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="6" class="text-center">No proposals submitted.</td></tr>
-                    {% endfor %}
                 </tbody>
             </table>
         </div>

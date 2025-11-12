@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'guest',
     'planner',
     'notifications',
+    'chat',
 
 ]
 

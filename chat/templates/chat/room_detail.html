@@ -1,0 +1,73 @@
+{% extends 'accounts/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ room.name }} - EventApp{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <h5>{{ room.name }}</h5>
+                <a href="{% url 'chat:room_list' %}" class="btn btn-secondary">Back to Rooms</a>
+            </div>
+            <div class="card-body p-0">
+                <div id="messages-container" class="d-flex flex-column" style="height: 400px; overflow-y: scroll; padding: 10px;">
+                    {% for message in messages %}
+                        <div class="mb-2 {% if message.sender == user %}text-end{% else %}text-start{% endif %}">
+                            <div class="d-inline-block p-2 rounded {% if message.sender == user %}bg-primary text-white{% else %}bg-light{% endif %}">
+                                <small class="text-muted">{{ message.sender.username }} - {{ message.timestamp|date:"H:i" }}</small><br>
+                                {{ message.content }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="card-footer">
+                    <form id="message-form" method="post" action="{% url 'chat:send_message' room.pk %}">
+                        {% csrf_token %}
+                        {{ message_form|crispy }}
+                        <button type="submit" class="btn btn-primary btn-sm">Send</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // AJAX send message
+    document.getElementById('message-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+        }).then(response => response.json())
+          .then(data => {
+              if (data.status === 'success') {
+                  const container = document.getElementById('messages-container');
+                  const msgDiv = document.createElement('div');
+                  msgDiv.className = 'mb-2 text-end';
+                  msgDiv.innerHTML = `<div class="d-inline-block p-2 rounded bg-primary text-white">
+                      <small class="text-muted">{{ user.username }} - ${data.message.timestamp}</small><br>
+                      ${data.message.content}
+                  </div>`;
+                  container.appendChild(msgDiv);
+                  container.scrollTop = container.scrollHeight;
+                  this.reset();
+              }
+          });
+    });
+
+    // Poll for new messages every 5s
+    setInterval(function() {
+        fetch("{% url 'chat:load_messages' room.pk %}")
+            .then(response => response.json())
+            .then(data => {
+                // Update if new messages (compare lengths)
+                // Simplified: reload page or append if newer
+            });
+    }, 5000);
+</script>
+{% endblock %}
