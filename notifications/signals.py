@@ -9,7 +9,9 @@ User = get_user_model()
 
 @receiver(post_save, sender='host.Proposal')
 def proposal_notification(sender, instance, created, **kwargs):
-    if created:  # Submitted
+
+    if created:
+        # submitted
         Notification.objects.create(
             recipient=instance.event.host,
             notification_type='proposal_submitted',
@@ -17,7 +19,7 @@ def proposal_notification(sender, instance, created, **kwargs):
             related_object_id=instance.id,
             related_model='host.proposal'
         )
-        # Optional email
+
         send_mail(
             'New Proposal Received',
             f'Check your dashboard for the proposal on "{instance.event.name}".',
@@ -25,8 +27,10 @@ def proposal_notification(sender, instance, created, **kwargs):
             [instance.event.host.email],
             fail_silently=True,
         )
-    else:  # Updated; check if status changed to accepted
-        if instance.status == 'accepted' and kwargs.get('update_fields', {}).get('status') == 'accepted':
+
+    else:
+        # ACCEPTED — avoid checking update_fields (you don't use it)
+        if instance.status == 'accepted':
             Notification.objects.create(
                 recipient=instance.planner,
                 notification_type='proposal_accepted',
@@ -34,13 +38,15 @@ def proposal_notification(sender, instance, created, **kwargs):
                 related_object_id=instance.id,
                 related_model='host.proposal'
             )
+
             send_mail(
                 'Proposal Accepted',
-                f'Congratulations! Contract secured for "{instance.event.name}". Proceed to chat for negotiation.',
+                f'Congratulations! Contract secured for "{instance.event.name}".',
                 settings.DEFAULT_FROM_EMAIL,
                 [instance.planner.email],
                 fail_silently=True,
             )
+
 
 @receiver(post_save, sender='guest.Booking')
 def booking_notification(sender, instance, created, **kwargs):

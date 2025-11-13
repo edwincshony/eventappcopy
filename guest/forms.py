@@ -22,8 +22,8 @@ class BookingForm(forms.ModelForm):
 
 class PaymentForm(forms.Form):
     card_number = forms.CharField(
-        max_length=20,
-        min_length=20,
+        max_length=16,
+        min_length=16,
         widget=forms.TextInput(attrs={'placeholder': '1234 5678 9012 3456'})
     )
     expiry_date = forms.CharField(max_length=5, widget=forms.TextInput(attrs={'placeholder': 'MM/YY'}))

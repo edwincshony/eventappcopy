@@ -74,7 +74,8 @@ class BookingCreateView(LoginRequiredMixin, GuestRequiredMixin, CreateView):
 
         if form.instance.ticket_quantity > remaining:
             messages.warning(self.request, f"Only {remaining} tickets left for '{event.name}'. Please adjust your quantity.")
-            return redirect('guest:booking_form', pk=event.pk)
+            return redirect('guest:book_event', pk=event.pk)
+
 
         form.instance.guest = self.request.user
         form.instance.event = event

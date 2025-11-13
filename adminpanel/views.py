@@ -28,7 +28,6 @@ class AdminEventListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        # Prefetch accepted proposals to avoid N+1 queries
         return (
             Event.objects.all()
             .prefetch_related('proposals')
@@ -37,10 +36,31 @@ class AdminEventListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # For convenience, attach each event's accepted proposal (if any)
+
+        # current datetime (needed for end_date comparison)
+        context['now'] = timezone.now()
+
+        # attach accepted proposal for each event
         for event in context['events']:
             event.accepted_proposal = event.proposals.filter(status='accepted').first()
+
         return context
+
+
+
+def delete_event(request, pk):
+    event = get_object_or_404(Event, pk=pk)
+
+    # block past events
+    if event.end_date <= timezone.now():
+        messages.error(request, "Past events cannot be deleted.")
+        return redirect('adminpanel:event_list')
+
+    event.delete()
+    messages.success(request, f'Event "{event.name}" deleted successfully.')
+    return redirect('adminpanel:event_list')
+
+
 
 
 

@@ -3,32 +3,53 @@
 {% block title %}Available Events - EventApp{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h2>Available Host Requirements</h2>
-        <a href="{% url 'planner:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+<div class="row mb-3">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Available Host Requirements</h2>
+        <a href="{% url 'planner:dashboard' %}" class="btn btn-secondary">
+            Back to Dashboard
+        </a>
     </div>
 </div>
 
-<div class="row">
+<div class="row g-4">
     {% for event in events %}
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+
             {% if event.banner %}
-            <img src="{{ event.banner.url }}" class="card-img-top" alt="{{ event.name }}">
+            <img src="{{ event.banner.url }}"
+                 class="card-img-top img-fluid rounded"
+                 alt="{{ event.name }}"
+                 style="max-height: 180px; object-fit: cover;">
             {% endif %}
+
             <div class="card-body">
-                <h5 class="card-title">{{ event.name }}</h5>
-                <p class="card-text"><strong>Budget:</strong> ₹{{ event.budget }} | <strong>Guests:</strong> {{ event.guest_count }}</p>
-                <p><strong>Needs:</strong> {{ event.needs }}</p>
-                <p><strong>Date:</strong> {{ event.start_date|date:"M d, Y" }}</p>
-                <a href="{% url 'planner:submit_proposal' event.pk %}" class="btn btn-success">Submit Proposal</a>
+                <h5 class="card-title fw-bold">{{ event.name }}</h5>
+
+                <p class="card-text mb-1">
+                    <strong>Budget:</strong> ₹{{ event.budget }} |
+                    <strong>Guests:</strong> {{ event.guest_count }}
+                </p>
+
+                <p class="mb-1">
+                    <strong>Needs:</strong> {{ event.needs }}
+                </p>
+
+                <p class="text-muted">
+                    <strong>Date:</strong> {{ event.start_date|date:"M d, Y" }}
+                </p>
+
+                <a href="{% url 'planner:submit_proposal' event.pk %}"
+                   class="btn btn-success w-100">
+                    Submit Proposal
+                </a>
             </div>
         </div>
     </div>
     {% empty %}
-    <div class="col-12">
-        <p>No open events available. Check back soon!</p>
+    <div class="col-12 text-center py-5">
+        <p class="text-muted fs-5">No open events available. Check back soon!</p>
     </div>
     {% endfor %}
 </div>

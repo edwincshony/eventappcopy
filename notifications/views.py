@@ -11,15 +11,29 @@ class NotificationListView(LoginRequiredMixin, ListView):
     model = Notification
     template_name = 'notifications/notification_list.html'
     context_object_name = 'notifications'
-    paginate_by = 10
+    paginate_by = None   # disable ListView's built-in pagination
 
     def get_queryset(self):
-        return Notification.objects.filter(recipient=self.request.user).order_by('-created_at')
+        return (
+            Notification.objects
+            .filter(recipient=self.request.user)
+            .order_by('-created_at')
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        unread_count = Notification.objects.filter(recipient=self.request.user, is_read=False).count()
-        context['unread_count'] = unread_count
+
+        queryset = context["notifications"]
+        page_obj, page_items = paginate_queryset(self.request, queryset)
+
+        context["page_obj"] = page_obj
+        context["notifications"] = page_items
+
+        context["unread_count"] = Notification.objects.filter(
+            recipient=self.request.user,
+            is_read=False
+        ).count()
+
         return context
 
 def mark_read(request, pk):

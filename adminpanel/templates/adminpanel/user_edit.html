@@ -16,7 +16,7 @@
                     {% csrf_token %}
                     {{ form|crispy }}
                     <button type="submit" class="btn btn-primary">Update User</button>
-                    <a href="{% url 'adminpanel:dashboard' %}" class="btn btn-secondary">Cancel</a>
+                    <a href="{% url 'adminpanel:user_list' 'host' %}" class="btn btn-secondary">Cancel</a>
                 </form>
             </div>
         </div>

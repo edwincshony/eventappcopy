@@ -69,6 +69,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'eventapp.urls'
 
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

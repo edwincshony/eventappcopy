@@ -8,8 +8,8 @@
         <h2>Welcome, {{ user.full_name }} (Host)</h2>
         <p>Manage your events, view guests & planners, and review proposals.</p>
         <a href="{% url 'host:event_add' %}" class="btn btn-primary">Add New Event</a>
-        <a href="{% url 'host:guest_list' %}" class="btn btn-info">Manage Guests ({{ total_guests }})</a>
-        <a href="{% url 'host:planner_list' %}" class="btn btn-success">Manage Planners ({{ total_planners }})</a>
+        <a href="{% url 'host:guest_list' %}" class="btn btn-info">View Guests ({{ total_guests }})</a>
+        <a href="{% url 'host:planner_list' %}" class="btn btn-success">View Planners ({{ total_planners }})</a>
         <a href="{% url 'host:proposals' %}" class="btn btn-warning">Proposals ({{ pending_proposals }})</a>
     </div>
 </div>

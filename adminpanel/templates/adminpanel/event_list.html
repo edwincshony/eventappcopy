@@ -2,6 +2,7 @@
 {% block content %}
 <div class="container mt-4">
     <h3>Events</h3>
+
     <table class="table table-striped">
         <thead>
             <tr>
@@ -15,8 +16,10 @@
                 <th>Timeline</th>
                 <th>Status</th>
                 <th>Created</th>
+                <th>Action</th>
             </tr>
         </thead>
+
         <tbody>
             {% for event in events %}
             <tr>
@@ -26,6 +29,7 @@
                 <td>₹{{ event.budget }}</td>
                 <td>{{ event.guest_count }}</td>
                 <td>{{ event.needs }}</td>
+
                 <td>
                     {% if event.accepted_proposal %}
                         ₹{{ event.accepted_proposal.amount }}
@@ -33,6 +37,7 @@
                         —
                     {% endif %}
                 </td>
+
                 <td>
                     {% if event.accepted_proposal %}
                         {{ event.accepted_proposal.timeline }}
@@ -40,6 +45,7 @@
                         —
                     {% endif %}
                 </td>
+
                 <td>
                     {% if event.accepted_proposal %}
                         {{ event.accepted_proposal.status|title }}
@@ -47,36 +53,53 @@
                         Pending
                     {% endif %}
                 </td>
-                <td>{{ event.created_at|date:"M d, Y" }}</td>
+
+             <td>{{ event.created_at|date:"M d, Y" }}</td>
+
+<td>
+    {% if event.end_date > now %}
+        <a href="{% url 'adminpanel:event_delete' event.id %}"
+           class="btn btn-danger btn-sm"
+           onclick="return confirm('Are you sure you want to delete this event?');">
+            Delete
+        </a>
+    {% else %}
+        <span class="text-muted">Not allowed</span>
+    {% endif %}
+</td>
+
+
             </tr>
             {% empty %}
             <tr>
-                <td colspan="10" class="text-center">No ongoing or accepted events found.</td>
+                <td colspan="11" class="text-center">No events found.</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
     {% if is_paginated %}
-        <nav>
-            <ul class="pagination">
-                {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
-                    </li>
-                {% endif %}
-                {% for num in page_obj.paginator.page_range %}
-                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                    </li>
-                {% endfor %}
-                {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
-                    </li>
-                {% endif %}
-            </ul>
-        </nav>
+    <nav>
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
     {% endif %}
 </div>
 {% endblock %}
