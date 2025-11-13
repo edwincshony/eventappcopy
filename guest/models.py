@@ -78,9 +78,10 @@ class Booking(models.Model):
         canvas.close()
 
     def save(self, *args, **kwargs):
-        """Ensure QR code is generated only once when first saving"""
-        creating = self._state.adding
+        # Check if this is a new instance (being created for the first time)
+        creating = self.pk is None
         super().save(*args, **kwargs)
         if creating and not self.qrcode:
             self.generate_qr_code()
             super().save(update_fields=['qrcode'])
+

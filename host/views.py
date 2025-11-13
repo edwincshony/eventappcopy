@@ -153,32 +153,45 @@ def verify_qr_code(request):
     """POST endpoint to verify QR codes scanned by camera."""
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
-
-    data = request.POST.get('qr_data')
+    
+    data = request.POST.get('qrdata')
+    
     if not data:
         return JsonResponse({'success': False, 'message': 'No QR data received'}, status=400)
-
+    
     try:
         booking = Booking.objects.get(booking_id=data)
     except Booking.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Invalid or unknown QR code'}, status=404)
-
-    # Host can only scan guests for their own events
+    
+    # Check if host owns this event
     if booking.event.host != request.user:
         return JsonResponse({'success': False, 'message': 'You are not authorized for this event'}, status=403)
-
+    
+    # Check if already used
     if booking.is_used:
         return JsonResponse({
             'success': False,
-            'message': f'Ticket already used on {booking.scanned_at.strftime("%Y-%m-%d %H:%M:%S")}'
+            'already_used': True,
+            'message': f'❌ Ticket already used',
+            'guest': booking.guest.fullname,
+            'event': booking.event.name,
+            'tickets': booking.ticket_quantity,
+            'scanned_at': booking.scanned_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'booking_id': str(booking.booking_id)
         })
-
+    
+    # Mark as used
     booking.mark_as_used()
+    
     return JsonResponse({
         'success': True,
-        'guest': booking.guest.full_name,
+        'already_used': False,
+        'guest': booking.guest.fullname,
         'event': booking.event.name,
         'tickets': booking.ticket_quantity,
-        'message': 'Entry confirmed. Ticket marked as used.'
+        'message': '✅ Entry confirmed. Ticket marked as used.',
+        'scanned_at': booking.scanned_at.strftime('%Y-%m-%d %H:%M:%S')
     })
+
 

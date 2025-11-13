@@ -3,30 +3,46 @@
 {% block title %}{{ event.name }} - EventApp{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row justify-content-center">
     <div class="col-md-8">
-        <div class="card">
+        <div class="card text-center">
+
             {% if event.banner %}
-            <img src="{{ event.banner.url }}" class="card-img-top" alt="{{ event.name }}">
+            <div class="p-3">
+                <img src="{{ event.banner.url }}"
+                     alt="{{ event.name }}"
+                     class="img-fluid img-thumbnail w-25 mx-auto d-block mb-3">
+            </div>
             {% endif %}
+
             <div class="card-body">
-                <h2>{{ event.name }}</h2>
-                <p><strong>Date:</strong> {{ event.start_date|date:"M d, Y H:i" }} to {{ event.end_date|date:"M d, Y H:i" }}</p>
+
+                <h2 class="mb-3">{{ event.name }}</h2>
+
+                <p><strong>Date:</strong>
+                    {{ event.start_date|date:"M d, Y H:i" }}
+                    to
+                    {{ event.end_date|date:"M d, Y H:i" }}
+                </p>
+
                 <p><strong>Venue:</strong> {{ event.venue_details }}</p>
-<p><strong>Budget/Guest:</strong> Approx ₹{{ budget_per_guest|floatformat:2 }} per ticket</p>
+
+                <p><strong>Budget/Guest:</strong>
+                    Approx ₹{{ budget_per_guest|floatformat:2 }} per ticket
+                </p>
+
                 <p><strong>Needs:</strong> {{ event.needs }}</p>
-                <a href="{% url 'guest:book_event' event.pk %}" class="btn btn-success btn-lg">Buy Ticket</a>
-                <a href="{% url 'guest:event_list' %}" class="btn btn-secondary">Back to Events</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h5>Event Info</h5>
-            </div>
-            <div class="card-body">
-                <p>Confirmed Event - Ready for bookings!</p>
+
+                <!-- Centered stretched buttons -->
+                <div class="d-flex flex-column flex-md-row justify-content-center gap-3 mt-3">
+                    <a href="{% url 'guest:book_event' event.pk %}" class="btn btn-success flex-fill">
+                        Buy Ticket
+                    </a>
+                    <a href="{% url 'guest:event_list' %}" class="btn btn-secondary flex-fill">
+                        Back to Events
+                    </a>
+                </div>
+
             </div>
         </div>
     </div>

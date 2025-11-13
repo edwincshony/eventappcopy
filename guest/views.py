@@ -46,6 +46,19 @@ class EventDetailView(LoginRequiredMixin, GuestRequiredMixin, DetailView):
             start_date__gt=timezone.now()
         ).distinct()
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        event = context['event']
+
+        # Prevent division crash if guest_count is zero
+        if event.guest_count and event.guest_count > 0:
+            context['budget_per_guest'] = event.budget / event.guest_count
+        else:
+            context['budget_per_guest'] = 0
+
+        return context
+
+
 class BookingCreateView(LoginRequiredMixin, GuestRequiredMixin, CreateView):
     model = Booking
     form_class = BookingForm
@@ -136,7 +149,7 @@ def cancel_booking(request, pk):
     if request.method == 'POST':
         booking.status = 'cancelled'
         booking.save()
-        messages.success(request, 'Booking cancelled. Refund processed (simulated).')
+        messages.success(request, 'Booking cancelled. Refund processed.')
         return redirect('guest:booking_list')
     return render(request, 'guest/booking_confirm_cancel.html', {'booking': booking})
 
@@ -156,6 +169,17 @@ class ETicketView(LoginRequiredMixin, GuestRequiredMixin, DetailView):
         # Optional: Make downloadable PDF (placeholder HTML printable)
         return response
 
+class EventListView(LoginRequiredMixin, GuestRequiredMixin, ListView):
+    model = Event
+    template_name = 'guest/event_list.html'
+    context_object_name = 'events'
+    paginate_by = 6
+
+    def get_queryset(self):
+        return Event.objects.filter(
+            proposals__status='accepted',
+            start_date__gt=timezone.now()
+        ).distinct()
 
 
     # For download: Add PDF response if reportlab

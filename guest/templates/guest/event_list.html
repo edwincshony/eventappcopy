@@ -1,0 +1,45 @@
+{% extends 'accounts/base.html' %}
+
+{%load static%}
+
+{% block title %}Events - EventApp{% endblock %}
+
+{% block content %}
+<h2 class="text-center mb-4">Upcoming Events</h2>
+
+<div class="row">
+    {% for event in events %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center">
+
+            <div class="p-3">
+                {% if event.banner %}
+                    <img src="{{ event.banner.url }}"
+                         class="img-fluid img-thumbnail w-50 mx-auto"
+                         alt="{{ event.name }}"
+                         style="max-height:160px; object-fit:cover;">
+                {% else %}
+                    <img src="{% static 'images/download.jpg' %}"
+                         class="img-fluid img-thumbnail w-50 mx-auto"
+                         alt="Default event image"
+                         style="max-height:160px; object-fit:cover;">
+                {% endif %}
+            </div>
+
+            <div class="card-body">
+                <h5 class="card-title">{{ event.name }}</h5>
+                <p>{{ event.venue_details|truncatewords:10 }}</p>
+                <p><strong>{{ event.start_date|date:"M d" }}</strong></p>
+
+                <a href="{% url 'guest:event_detail' event.pk %}"
+                   class="btn btn-primary w-100">
+                    View Details
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center">No events available.</div>
+    {% endfor %}
+</div>
+{% endblock %}
