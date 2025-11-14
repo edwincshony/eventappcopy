@@ -3,28 +3,62 @@
 {% block title %}Proposal Details - EventApp{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
+<div class="row justify-content-center my-5">
     <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h3>Proposal for {{ proposal.event.name }}</h3>
-                <p class="text-muted">Status: <span class="badge bg-{% if proposal.status == 'pending' %}warning{% elif proposal.status == 'accepted' %}success{% else %}danger{% endif %}">{{ proposal.status|title }}</span></p>
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-light">
+                <h3 class="mb-1">{{ proposal.event.name }}</h3>
+                <p class="mb-0 text-muted">
+                    Status: 
+                    <span class="badge bg-{% if proposal.status == 'pending' %}warning{% elif proposal.status == 'accepted' %}success{% else %}danger{% endif %}">
+                        {{ proposal.status|title }}
+                    </span>
+                </p>
             </div>
             <div class="card-body">
-                <p><strong>Amount:</strong> ₹{{ proposal.amount }}</p>
-                <p><strong>Services:</strong> {{ proposal.services }}</p>
-                <p><strong>Timeline:</strong> {{ proposal.timeline }}</p>
-                <p><strong>Submitted:</strong> {{ proposal.created_at|date:"M d, Y H:i" }}</p>
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><strong>Amount:</strong></span>
+                        <span>₹{{ proposal.amount }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><strong>Services:</strong></span>
+                        <span>{{ proposal.services }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><strong>Timeline:</strong></span>
+                        <span>{{ proposal.timeline }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><strong>Submitted:</strong></span>
+                        <span>{{ proposal.created_at|date:"M d, Y H:i" }}</span>
+                    </li>
+                </ul>
+
                 <hr>
-                <p><strong>Next Steps:</strong></p>
-                {% if proposal.status == 'pending' %}
-                    <p>Awaiting host review. You can <a href="{% url 'planner:proposal_edit' proposal.pk %}">edit</a> or <a href="{% url 'planner:proposal_delete' proposal.pk %}">delete</a> this proposal.</p>
-                {% comment %} {% elif proposal.status == 'accepted' %}
-                    <p>Congratulations! Contract secured. <a href="{% url 'chat:start' proposal.event.host.pk %}" class="btn btn-success">Negotiate Terms (Chat)</a></p> {% endcomment %}
-                {% else %}
-                    <p>Proposal rejected. <a href="{% url 'planner:available_events' %}">Submit New</a></p>
-                {% endif %}
-                <a href="{% url 'planner:proposal_list' %}" class="btn btn-secondary">Back to Proposals</a>
+
+                {% comment %} <div class="mb-3">
+                    <p class="fw-semibold mb-2">Next Steps:</p>
+                    {% if proposal.status == 'pending' %}
+                        <p class="mb-2">
+                            Awaiting host review. You can 
+                            <a href="{% url 'planner:proposal_edit' proposal.pk %}" class="text-decoration-none">edit</a> 
+                            or 
+                            <a href="{% url 'planner:proposal_delete' proposal.pk %}" class="text-decoration-none text-danger">delete</a> this proposal.
+                        </p>
+                    {% comment %} {% elif proposal.status == 'accepted' %} 
+                        <p>Congratulations! Contract secured. 
+                        <a href="{% url 'chat:start' proposal.event.host.pk %}" class="btn btn-success btn-sm">Negotiate Terms (Chat)</a>
+                        </p> 
+                    {% endcomment %} 
+                    {% comment %} {% else %}
+                        <p>Proposal rejected. <a href="{% url 'planner:available_events' %}" class="text-decoration-none">Submit New</a></p>
+                    {% endif %} {% endcomment %}
+                {% comment %} </div> {% endcomment %} 
+
+                <a href="{% url 'planner:proposal_list' %}" class="btn btn-outline-secondary w-100 mt-3">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Proposals
+                </a>
             </div>
         </div>
     </div>

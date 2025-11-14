@@ -40,7 +40,7 @@ class AvailableEventsView(LoginRequiredMixin, PlannerRequiredMixin, ListView):
     model = Event
     template_name = 'planner/available_events.html'
     context_object_name = 'events'
-    paginate_by = 6
+    # remove paginate_by because we're using custom pagination
 
     def get_queryset(self):
         # Open future events without accepted proposal
@@ -49,6 +49,14 @@ class AvailableEventsView(LoginRequiredMixin, PlannerRequiredMixin, ListView):
         ).exclude(
             proposals__status='accepted'
         ).distinct().order_by('start_date')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queryset = self.get_queryset()
+        page_obj, events = paginate_queryset(self.request, queryset)
+        context['page_obj'] = page_obj
+        context['events'] = events  # override context_object_name with paginated list
+        return context
 
 class ProposalCreateView(LoginRequiredMixin, PlannerRequiredMixin, CreateView):
     model = Proposal

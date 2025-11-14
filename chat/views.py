@@ -25,12 +25,11 @@ class NonAdminRequiredMixin:
             return redirect('accounts:home')
         return super().dispatch(request, *args, **kwargs)
 
-# Display all users to chat with
 class ChatListView(LoginRequiredMixin, NonAdminRequiredMixin, ListView):
     model = CustomUser
     template_name = 'chat/room_list.html'
     context_object_name = 'users'
-    paginate_by = 20
+    paginate_by = None  # disable ListView pagination to use global system
 
     def get_queryset(self):
         return CustomUser.objects.filter(
@@ -44,11 +43,17 @@ class ChatListView(LoginRequiredMixin, NonAdminRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
-        # Get all existing rooms for current user
+
+        # Apply global pagination
+        page_obj, paginated_users = paginate_queryset(self.request, context['users'])
+        context['page_obj'] = page_obj
+        context['users'] = paginated_users
+        context['is_paginated'] = page_obj.paginator.num_pages > 1
+
+        # Get rooms for this user
         user_rooms = Room.objects.filter(participants=self.request.user)
-        
-        # Create a dictionary mapping user_id -> room
+
+        # Map: user_id → room object
         room_map = {}
         for room in user_rooms:
             other_participants = room.participants.exclude(id=self.request.user.id)
@@ -57,13 +62,13 @@ class ChatListView(LoginRequiredMixin, NonAdminRequiredMixin, ListView):
         
         context['room_map'] = room_map
         context['my_rooms'] = user_rooms
-        
-        # Add unread counts for each room
+
+        # Add unread counts
         for room in user_rooms:
             room.unread_count = room.messages.filter(
                 is_read=False
             ).exclude(sender=self.request.user).count()
-        
+
         return context
 
 class RoomDetailView(LoginRequiredMixin, NonAdminRequiredMixin, DetailView):

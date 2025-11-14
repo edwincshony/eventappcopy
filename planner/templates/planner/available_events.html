@@ -3,46 +3,45 @@
 {% block title %}Available Events - EventApp{% endblock %}
 
 {% block content %}
-<div class="row mb-3">
-    <div class="col-12 d-flex justify-content-between align-items-center">
-        <h2 class="mb-0">Available Host Requirements</h2>
-        <a href="{% url 'planner:dashboard' %}" class="btn btn-secondary">
-            Back to Dashboard
+<div class="row mb-4">
+    <div class="col-12 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <h2 class="mb-3 mb-md-0 fw-bold">Available Host Requirements</h2>
+        <a href="{% url 'planner:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
         </a>
     </div>
 </div>
 
-<div class="row g-4">
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
     {% for event in events %}
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
+    <div class="col">
+        <div class="card shadow-sm h-100 border-0 rounded-3">
 
             {% if event.banner %}
             <img src="{{ event.banner.url }}"
-                 class="card-img-top img-fluid rounded"
+                 class="card-img-top img-fluid rounded-top"
                  alt="{{ event.name }}"
                  style="max-height: 180px; object-fit: cover;">
             {% endif %}
 
-            <div class="card-body">
-                <h5 class="card-title fw-bold">{{ event.name }}</h5>
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title fw-bold mb-2">{{ event.name }}</h5>
 
                 <p class="card-text mb-1">
-                    <strong>Budget:</strong> ₹{{ event.budget }} |
-                    <strong>Guests:</strong> {{ event.guest_count }}
+                    <span class="fw-semibold">Budget:</span> ₹{{ event.budget }} |
+                    <span class="fw-semibold">Guests:</span> {{ event.guest_count }}
                 </p>
 
-                <p class="mb-1">
-                    <strong>Needs:</strong> {{ event.needs }}
+                <p class="mb-2">
+                    <span class="fw-semibold">Needs:</span> {{ event.needs }}
                 </p>
 
-                <p class="text-muted">
-                    <strong>Date:</strong> {{ event.start_date|date:"M d, Y" }}
+                <p class="text-muted mb-3">
+                    <span class="fw-semibold">Date:</span> {{ event.start_date|date:"M d, Y" }}
                 </p>
 
-                <a href="{% url 'planner:submit_proposal' event.pk %}"
-                   class="btn btn-success w-100">
-                    Submit Proposal
+                <a href="{% url 'planner:submit_proposal' event.pk %}" class="btn btn-success mt-auto w-100">
+                    <i class="bi bi-send-fill me-1"></i> Submit Proposal
                 </a>
             </div>
         </div>
@@ -53,4 +52,6 @@
     </div>
     {% endfor %}
 </div>
+
+{%include 'partials/pagination.html'%}
 {% endblock %}

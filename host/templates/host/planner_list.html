@@ -3,39 +3,65 @@
 {% block title %}Manage Planners - EventApp{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h2>Manage Planners</h2>
-        <a href="{% url 'host:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+<div class="row mb-3">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Manage Planners</h2>
+        <a href="{% url 'host:dashboard' %}" class="btn btn-outline-secondary">
+            &larr; Back to Dashboard
+        </a>
     </div>
 </div>
 
 <div class="row">
     <div class="col-12">
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Full Name</th>
-                        <th>Email</th>
-                        <th>Mobile</th>
-                        <th>Address</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for planner in planners %}
-                    <tr>
-                        <td>{{ planner.full_name }}</td>
-                        <td>{{ planner.email }}</td>
-                        <td>{{ planner.mobile_number }}</td>
-                        <td>{{ planner.address|truncatewords:10 }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="4" class="text-center">No planners registered.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">Full Name</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Mobile</th>
+                                <th scope="col">Address</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for planner in planners %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if planner.profile_picture %}
+                                            <img src="{{ planner.profile_picture.url }}" 
+                                                 alt="{{ planner.full_name }}" 
+                                                 class="rounded-circle me-2" 
+                                                 style="width: 40px; height: 40px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="rounded-circle bg-secondary text-white me-2 d-flex align-items-center justify-content-center" 
+                                                 style="width: 40px; height: 40px;">
+                                                <strong>{{ planner.full_name|slice:":1"|upper }}</strong>
+                                            </div>
+                                        {% endif %}
+                                        <span>{{ planner.full_name }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ planner.email }}</td>
+                                <td>{{ planner.mobile_number }}</td>
+                                <td>{{ planner.address|truncatewords:10 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">
+                                    No planners registered.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{%include 'partials/pagination.html'%}
 {% endblock %}

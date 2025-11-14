@@ -75,27 +75,30 @@ class BookingCreateView(LoginRequiredMixin, GuestRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
-        event = get_object_or_404(Event, pk=self.kwargs['pk'])
-        
-        confirmed_bookings = Booking.objects.filter(event=event, status='confirmed')
-        total_booked = confirmed_bookings.aggregate(models.Sum('ticket_quantity'))['ticket_quantity__sum'] or 0
-        remaining = event.guest_count - total_booked
+            event = get_object_or_404(Event, pk=self.kwargs['pk'])
+            
+            confirmed_bookings = Booking.objects.filter(event=event, status='confirmed')
+            total_booked = confirmed_bookings.aggregate(models.Sum('ticket_quantity'))['ticket_quantity__sum'] or 0
+            remaining = event.guest_count - total_booked
 
-        if remaining <= 0:
-            messages.warning(self.request, f"Bookings for '{event.name}' are full.")
-            return redirect('guest:dashboard')
+            if remaining <= 0:
+                messages.warning(self.request, f"Bookings for '{event.name}' are full.")
+                return redirect('guest:dashboard')
 
-        if form.instance.ticket_quantity > remaining:
-            messages.warning(self.request, f"Only {remaining} tickets left for '{event.name}'. Please adjust your quantity.")
-            return redirect('guest:book_event', pk=event.pk)
+            if form.instance.ticket_quantity > remaining:
+                messages.warning(self.request, f"Only {remaining} tickets left for '{event.name}'. Please adjust your quantity.")
+                return redirect('guest:book_event', pk=event.pk)
 
+            # Save booking as pending
+            form.instance.guest = self.request.user
+            form.instance.event = event
+            form.instance.total_amount = (event.budget / event.guest_count) * form.instance.ticket_quantity
+            form.instance.status = 'pending'  # explicitly set pending
+            self.object = form.save()
+            
+            messages.success(self.request, 'Booking created! Please complete payment to confirm.')
+            return redirect('guest:payment_simulation', booking_id=self.object.booking_id)
 
-        form.instance.guest = self.request.user
-        form.instance.event = event
-        form.instance.total_amount = (event.budget / event.guest_count) * form.instance.ticket_quantity
-        self.object = form.save()
-        messages.success(self.request, 'Booking confirmed! Proceed to payment.')
-        return redirect('guest:payment_simulation', booking_id=self.object.booking_id)
 
 
 class PaymentSimulationView(LoginRequiredMixin, GuestRequiredMixin, TemplateView):
@@ -116,12 +119,14 @@ class PaymentSimulationView(LoginRequiredMixin, GuestRequiredMixin, TemplateView
         payment_form = PaymentForm(request.POST)
         
         if payment_form.is_valid():
-            # FIXED: Generate actual QR code
+            # Generate e-ticket QR code
             booking.generate_qr_code()
+            booking.status = 'confirmed'  # mark booking as confirmed only after payment
             booking.save()
             
-            messages.success(request, 'Payment successful! E-ticket generated.')
+            messages.success(request, 'Payment successful! Booking confirmed and e-ticket generated.')
             return redirect('guest:eticket', booking_id=booking.booking_id)
+
         else:
             context = self.get_context_data(**kwargs)
             context['payment_form'] = payment_form

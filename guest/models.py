@@ -28,7 +28,7 @@ class Booking(models.Model):
     booking_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     ticket_quantity = models.PositiveIntegerField(default=1)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='confirmed')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     qrcode = models.ImageField(upload_to='qrcodes/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

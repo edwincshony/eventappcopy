@@ -40,7 +40,19 @@ class EventListView(LoginRequiredMixin, HostRequiredMixin, ListView):
     context_object_name = 'events'
 
     def get_queryset(self):
-        return Event.objects.filter(host=self.request.user)
+        # Only show events hosted by current user
+        return Event.objects.filter(host=self.request.user).order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queryset = self.get_queryset()
+
+        # Apply global pagination
+        page_obj, paginated_events = paginate_queryset(self.request, queryset)
+        context['page_obj'] = page_obj
+        context['events'] = paginated_events  # override context_object_name with paginated data
+
+        return context
 
 class EventCreateView(LoginRequiredMixin, HostRequiredMixin, CreateView):
     model = Event
@@ -50,7 +62,7 @@ class EventCreateView(LoginRequiredMixin, HostRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.host = self.request.user
-        messages.success(self.request, 'Event created successfully! Invite planners to bid.')
+        messages.success(self.request, 'Event created successfully!')
         return super().form_valid(form)
 
 class EventUpdateView(LoginRequiredMixin, HostRequiredMixin, UpdateView):
@@ -91,28 +103,55 @@ class GuestListView(LoginRequiredMixin, HostRequiredMixin, ListView):
     model = CustomUser
     template_name = 'host/guest_list.html'
     context_object_name = 'guests'
-    paginate_by = 10
+    # remove paginate_by here because we're using custom pagination
 
     def get_queryset(self):
         return CustomUser.objects.filter(role='guest', is_approved=True).order_by('full_name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queryset = self.get_queryset()
+        page_obj, guests = paginate_queryset(self.request, queryset)
+        context['page_obj'] = page_obj
+        context['guests'] = guests  # override context_object_name with paginated list
+        return context
 
 class PlannerListView(LoginRequiredMixin, HostRequiredMixin, ListView):
     model = CustomUser
     template_name = 'host/planner_list.html'
     context_object_name = 'planners'
-    paginate_by = 10
+    # remove paginate_by to use custom pagination
 
     def get_queryset(self):
         return CustomUser.objects.filter(role='planner', is_approved=True).order_by('full_name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queryset = self.get_queryset()
+        page_obj, planners = paginate_queryset(self.request, queryset)
+        context['page_obj'] = page_obj
+        context['planners'] = planners  # override the context_object_name with paginated list
+        return context
 
 class ProposalsView(LoginRequiredMixin, HostRequiredMixin, ListView):
     model = Proposal
     template_name = 'host/proposals.html'
     context_object_name = 'proposals'
-    paginate_by = 10
 
     def get_queryset(self):
+        # Only proposals for events hosted by the current user
         return Proposal.objects.filter(event__host=self.request.user).order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queryset = self.get_queryset()
+
+        # Apply global pagination
+        page_obj, paginated_proposals = paginate_queryset(self.request, queryset)
+        context['page_obj'] = page_obj
+        context['proposals'] = paginated_proposals  # override context_object_name with paginated results
+
+        return context
 
 from django.utils.http import urlencode
 

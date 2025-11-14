@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from .views import TicketHistoryView
+
 
 app_name = 'adminpanel'
 
@@ -16,6 +18,8 @@ urlpatterns = [
     # path('events/', views.EventListView.as_view(), name='event_list'),
     path('events/', views.AdminEventListView.as_view(), name='event_list'),
     path('events/<int:pk>/delete/', views.delete_event, name='event_delete'),
+    path('ticket-history/', TicketHistoryView.as_view(), name='ticket_history'),
+
 
 
 ]

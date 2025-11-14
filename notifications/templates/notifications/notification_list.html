@@ -4,54 +4,75 @@
 
 {% block content %}
 
-<div class="row mb-4">
-    <div class="col-12 d-flex align-items-center justify-content-between">
-        <h2 class="mb-0">Notifications 
-            <span class="badge bg-primary">{{ unread_count }} unread</span>
-        </h2>
+<div class="container-fluid">
 
-        <a href="{% url 'accounts:home' %}" class="btn btn-outline-secondary">
-            &larr; Back to Home
-        </a>
-    </div>
-</div>
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12 d-flex align-items-center justify-content-between">
+            <div>
+                <h2 class="fw-bold mb-1">Notifications</h2>
+                <span class="badge bg-primary">{{ unread_count }} unread</span>
+            </div>
 
-<div class="row">
-    <div class="col-12">
-        <div class="list-group shadow-sm">
-            {% for notification in notifications %}
-                <a href="{% url 'notifications:notification_detail' notification.pk %}"
-                   class="list-group-item list-group-item-action 
-                          {% if not notification.is_read %}list-group-item-warning{% endif %}">
-
-                    <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">{{ notification.get_notification_type_display }}</h5>
-                        <small class="text-muted">{{ notification.created_at|date:"M d, Y H:i" }}</small>
-                    </div>
-
-                    <p class="mb-1">{{ notification.message|truncatewords:20 }}</p>
-
-                    {% if notification.related_object %}
-                        <small class="text-muted">Related: {{ notification.related_object }}</small>
-                    {% endif %}
-
-                    {% if notification.is_read %}
-                        <span class="badge bg-secondary float-end">Read</span>
-                    {% endif %}
-                </a>
-            {% empty %}
-                <div class="alert alert-info text-center mb-0">
-                    No notifications yet.
-                </div>
-            {% endfor %}
+            <a href="{% url 'accounts:home' %}" class="btn btn-outline-secondary shadow-sm">
+                &larr; Back to Home
+            </a>
         </div>
     </div>
-</div>
 
-<div class="row mt-4">
-    <div class="col-12">
-        {% include 'partials/pagination.html' %}
+    <!-- Notifications List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="list-group shadow-sm">
+
+                {% for notification in notifications %}
+                    <a href="{% url 'notifications:notification_detail' notification.pk %}"
+                       class="list-group-item list-group-item-action py-3
+                              {% if not notification.is_read %}list-group-item-warning{% endif %}">
+
+                        <!-- Title + Time -->
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1 fw-semibold">
+                                {{ notification.get_notification_type_display }}
+                            </h5>
+                            <small class="text-muted">
+                                {{ notification.created_at|date:"M d, Y H:i" }}
+                            </small>
+                        </div>
+
+                        <!-- Message -->
+                        <p class="mb-2 text-dark">{{ notification.message|truncatewords:20 }}</p>
+
+                        <!-- Related Object -->
+                        {% if notification.related_object %}
+                            <small class="text-muted">
+                                Related: {{ notification.related_object }}
+                            </small>
+                        {% endif %}
+
+                        <!-- Read Status -->
+                        {% if notification.is_read %}
+                            <span class="badge bg-secondary float-end">Read</span>
+                        {% endif %}
+                    </a>
+
+                {% empty %}
+                    <div class="alert alert-info text-center mb-0 py-4">
+                        No notifications yet.
+                    </div>
+                {% endfor %}
+
+            </div>
+        </div>
     </div>
+
+    <!-- Pagination -->
+    <div class="row mt-4">
+        <div class="col-12">
+            {% include 'partials/pagination.html' %}
+        </div>
+    </div>
+
 </div>
 
 {% endblock %}
