@@ -1,59 +1,44 @@
-{% extends 'accounts/base.html' %}
+{% extends "accounts/base.html" %}
+
+{% block title %}QR Code Scanner | EventApp{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card">
+            <div class="card shadow">
                 <div class="card-header bg-primary text-white">
-                    <h2 class="mb-0">QR Code Scanner</h2>
+                    <h2 class="mb-0"><i class="bi bi-qr-code-scan"></i> QR Code Scanner</h2>
                 </div>
                 <div class="card-body">
                     <p class="text-muted">Allow camera access to start scanning guest tickets.</p>
-                    
+
                     <!-- QR Reader -->
                     <div id="qr-reader" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
-                    
-                    <!-- Scan Again Button (Hidden by default) -->
+
+                    <!-- Scan Again Button -->
                     <div id="scan-again-section" class="text-center mt-3" style="display: none;">
                         <button id="scan-again-btn" class="btn btn-primary btn-lg">
                             <i class="bi bi-camera"></i> Scan Next Ticket
                         </button>
                     </div>
-                    
+
                     <!-- Result Display -->
                     <div id="qr-result" class="mt-4"></div>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{% url 'host:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal for Already Used Confirmation -->
-<div class="modal fade" id="alreadyUsedModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title">⚠️ Ticket Already Used</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="modal-body-content">
-                <!-- Dynamic content will be inserted here -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="force-allow-btn">Allow Entry Anyway</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
     const qrReader = new Html5Qrcode("qr-reader");
     let isScanning = false;
-    let currentBookingData = null;
-    
+
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -68,152 +53,113 @@
         }
         return cookieValue;
     }
-    
-    const csrftoken = getCookie('csrftoken');
-    
+
     function startScanning() {
         isScanning = true;
         document.getElementById('scan-again-section').style.display = 'none';
         document.getElementById('qr-result').innerHTML = '<p class="text-info">📷 Ready to scan...</p>';
-        
+
         qrReader.start(
             { facingMode: "environment" },
             { fps: 10, qrbox: 250 },
             onScanSuccess
         ).catch(err => {
-            console.error(err);
+            console.error('Camera error:', err);
             document.getElementById('qr-result').innerHTML = 
-                '<div class="alert alert-danger">Camera access denied or unavailable.</div>';
+                '<div class="alert alert-danger">❌ Camera access denied. Please allow camera permissions.</div>';
         });
     }
-    
+
     function stopScanning() {
         if (isScanning) {
             qrReader.stop().then(() => {
                 isScanning = false;
                 document.getElementById('scan-again-section').style.display = 'block';
-            }).catch(err => console.error(err));
+            }).catch(err => console.error('Stop error:', err));
         }
     }
-    
+
     function onScanSuccess(decodedText) {
-    // Stop scanning immediately
-    stopScanning();
-    
-    // Show loading state
-    document.getElementById('qr-result').innerHTML = '<p class="text-info">⏳ Verifying ticket...</p>';
-    
-    // Send to Django for verification
-    fetch("{% url 'host:verify_qr' %}", {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': csrftoken,
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({ 'qrdata': decodedText })
-    })
-    .then(response => {
-        console.log('Response status:', response.status);
-        if (!response.ok) {
-            return response.json().then(data => {
-                throw new Error(data.message || 'Server error');
-            });
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Success data:', data);
-        const resultDiv = document.getElementById('qr-result');
-        
-        if (data.success) {
-            // Valid and unused ticket
-            resultDiv.innerHTML = `
-                <div class="alert alert-success">
-                    <h4>✅ ${data.message}</h4>
-                    <hr>
-                    <p class="mb-1"><strong>Guest:</strong> ${data.guest}</p>
-                    <p class="mb-1"><strong>Event:</strong> ${data.event}</p>
-                    <p class="mb-1"><strong>Tickets:</strong> ${data.tickets}</p>
-                    <p class="mb-0"><strong>Scanned At:</strong> ${data.scanned_at}</p>
-                </div>
-            `;
-        } else if (data.already_used) {
-            // Ticket already used - show modal
-            currentBookingData = data;
-            showAlreadyUsedModal(data);
+        stopScanning();
+
+        document.getElementById('qr-result').innerHTML = '<p class="text-info">⏳ Verifying ticket...</p>';
+
+        const formData = new FormData();
+        formData.append('qrdata', decodedText);
+        formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+        fetch('/host/verify-qr/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Content-Type:', response.headers.get('content-type'));
             
-            resultDiv.innerHTML = `
-                <div class="alert alert-warning">
-                    <h4>⚠️ ${data.message}</h4>
-                    <hr>
-                    <p class="mb-1"><strong>Guest:</strong> ${data.guest}</p>
-                    <p class="mb-1"><strong>Event:</strong> ${data.event}</p>
-                    <p class="mb-1"><strong>Tickets:</strong> ${data.tickets}</p>
-                    <p class="mb-0"><strong>Previously Scanned:</strong> ${data.scanned_at}</p>
-                </div>
-            `;
-        } else {
-            // Other error
-            resultDiv.innerHTML = `
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned HTML instead of JSON. Check your URL configuration.');
+            }
+            
+            return response.json();
+        })
+        .then(data => {
+            console.log('JSON data:', data);
+            const resultDiv = document.getElementById('qr-result');
+
+            if (data.success) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <h4>${data.message}</h4>
+                        <hr>
+                        <p class="mb-1"><strong>Guest:</strong> ${data.guest}</p>
+                        <p class="mb-1"><strong>Event:</strong> ${data.event}</p>
+                        <p class="mb-1"><strong>Tickets:</strong> ${data.tickets}</p>
+                        <p class="mb-0"><strong>Scanned At:</strong> ${data.scanned_at}</p>
+                    </div>
+                `;
+            } else if (data.already_used) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-warning">
+                        <h4>${data.message}</h4>
+                        <hr>
+                        <p class="mb-1"><strong>Guest:</strong> ${data.guest}</p>
+                        <p class="mb-1"><strong>Event:</strong> ${data.event}</p>
+                        <p class="mb-1"><strong>Tickets:</strong> ${data.tickets}</p>
+                        <p class="mb-0"><strong>Previously Scanned:</strong> ${data.scanned_at}</p>
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h4>❌ Verification Failed</h4>
+                        <p class="mb-0">${data.message}</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            document.getElementById('qr-result').innerHTML = `
                 <div class="alert alert-danger">
                     <h4>❌ Error</h4>
-                    <p class="mb-0">${data.message}</p>
+                    <p class="mb-0">${err.message}</p>
+                    <small class="text-muted">Check console for details</small>
                 </div>
             `;
-        }
-    })
-    .catch(err => {
-        console.error('Fetch error:', err);
-        document.getElementById('qr-result').innerHTML = `
-            <div class="alert alert-danger">
-                <h4>❌ Network Error</h4>
-                <p class="mb-0">${err.message || 'Unable to verify ticket. Check console for details.'}</p>
-            </div>
-        `;
-    });
-}
-
-    
-    function showAlreadyUsedModal(data) {
-        const modalBody = document.getElementById('modal-body-content');
-        modalBody.innerHTML = `
-            <p><strong>This ticket has already been scanned and used.</strong></p>
-            <hr>
-            <p class="mb-1"><strong>Guest:</strong> ${data.guest}</p>
-            <p class="mb-1"><strong>Event:</strong> ${data.event}</p>
-            <p class="mb-1"><strong>Tickets:</strong> ${data.tickets}</p>
-            <p class="mb-1"><strong>First Scanned:</strong> ${data.scanned_at}</p>
-            <hr>
-            <p class="text-muted">Would you like to allow entry anyway? (This will be logged)</p>
-        `;
-        
-        const modal = new bootstrap.Modal(document.getElementById('alreadyUsedModal'));
-        modal.show();
+        });
     }
-    
-    // Handle "Allow Entry Anyway" button
-    document.getElementById('force-allow-btn').addEventListener('click', function() {
-        // Log the override (you can send this to backend for logging)
-        console.log('Manual override for booking:', currentBookingData.booking_id);
-        
-        document.getElementById('qr-result').innerHTML = `
-            <div class="alert alert-info">
-                <h4>ℹ️ Manual Entry Allowed</h4>
-                <p class="mb-0">Entry permitted by host override for ${currentBookingData.guest}</p>
-            </div>
-        `;
-        
-        // Close modal
-        bootstrap.Modal.getInstance(document.getElementById('alreadyUsedModal')).hide();
-        currentBookingData = null;
-    });
-    
-    // Handle "Scan Again" button
-    document.getElementById('scan-again-btn').addEventListener('click', function() {
-        startScanning();
-    });
-    
-    // Start scanning on page load
+
+    document.getElementById('scan-again-btn').addEventListener('click', startScanning);
+
+    // Auto-start
     startScanning();
 </script>
 {% endblock %}

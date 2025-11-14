@@ -68,12 +68,116 @@
             <!-- Venue -->
             <h5 class="card-title text-primary mt-4 mb-3 border-bottom pb-2">Venue Details</h5>
             <p class="mb-0">{{ object.venue_details|linebreaks }}</p>
+
+            <!-- Booking Statistics -->
+            <h5 class="card-title text-primary mt-4 mb-3 border-bottom pb-2">Booking Statistics</h5>
+            <div class="row text-center">
+                <div class="col-md-4 mb-3">
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <h6 class="text-muted">Registered Guests</h6>
+                            <h3 class="text-success">{{ total_registered }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card border-info">
+                        <div class="card-body">
+                            <h6 class="text-muted">Total Tickets Sold</h6>
+                            <h3 class="text-info">{{ total_tickets_sold }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card border-primary">
+                        <div class="card-body">
+                            <h6 class="text-muted">Total Revenue</h6>
+                            <h3 class="text-primary">₹{{ total_revenue|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registered Guests List -->
+            <h5 class="card-title text-primary mt-4 mb-3 border-bottom pb-2">
+                Registered Guests ({{ total_registered }})
+            </h5>
+            {% if bookings %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Guest Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Tickets</th>
+                                <th>Amount Paid</th>
+                                <th>Booking Date</th>
+                                <th>QR Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in bookings %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <strong>{{ booking.guest.full_name }}</strong>
+                                </td>
+                                <td>
+                                    <small>{{ booking.guest.email }}</small>
+                                </td>
+                                <td>
+                                    <small>{{ booking.guest.mobilenumber|default:"N/A" }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ booking.ticket_quantity }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">₹{{ booking.total_amount|floatformat:2 }}</span>
+                                </td>
+                                <td>
+                                    <small>{{ booking.created_at|date:"M d, Y H:i" }}</small>
+                                </td>
+                                <td>
+                                    {% if booking.is_used %}
+                                        <span class="badge bg-secondary">
+                                            <i class="bi bi-check-circle"></i> Used
+                                        </span>
+                                        <br>
+                                        <small class="text-muted">{{ booking.scanned_at|date:"M d, H:i" }}</small>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-qr-code"></i> Unused
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                {% comment %} <td>
+                                    <a href="{% url 'guest:eticket' booking.booking_id %}" 
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="View E-Ticket">
+                                        <i class="bi bi-ticket-perforated"></i>
+                                    </a>
+                                </td> {% endcomment %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-info-circle"></i> No guests have registered for this event yet.
+                </div>
+            {% endif %}
         </div>
 
         <!-- Footer -->
-        <div class="card-footer bg-light text-end">
+        <div class="card-footer bg-light d-flex justify-content-between align-items-center">
             <a href="{% url 'host:event_list' %}" class="btn btn-secondary">
                 ← Back to Events
+            </a>
+            <a href="{% url 'host:qr_scanner' %}" class="btn btn-primary">
+                <i class="bi bi-qr-code-scan"></i> Scan QR Codes
             </a>
         </div>
     </div>

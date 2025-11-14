@@ -91,12 +91,27 @@ def event_delete(request, pk):
 
 class EventDetailView(LoginRequiredMixin, HostRequiredMixin, DetailView):
     model = Event
-    template_name = 'host/event_details.html'  # Optional; add if needed
+    template_name = 'host/event_details.html'
+
+    def get_queryset(self):
+        return Event.objects.filter(host=self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         needs = self.object.needs
         context["needs_list"] = needs.split(",") if needs else []
+        
+        # Get all confirmed bookings for this event
+        bookings = Booking.objects.filter(
+            event=self.object,
+            status='confirmed'
+        ).select_related('guest').order_by('-created_at')
+        
+        context['bookings'] = bookings
+        context['total_registered'] = bookings.count()
+        context['total_tickets_sold'] = sum(booking.ticket_quantity for booking in bookings)
+        context['total_revenue'] = sum(booking.total_amount for booking in bookings)
+        
         return context
 
 class GuestListView(LoginRequiredMixin, HostRequiredMixin, ListView):
@@ -187,50 +202,94 @@ class QRScannerView(LoginRequiredMixin, HostRequiredMixin, TemplateView):
     template_name = 'host/qr_scanner.html'
 
 
+from django.contrib.auth.decorators import login_required
+
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+from django.utils import timezone
+import json
+
 @csrf_exempt
+@require_POST
 def verify_qr_code(request):
     """POST endpoint to verify QR codes scanned by camera."""
-    if request.method != 'POST':
-        return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
-    
-    data = request.POST.get('qrdata')
-    
-    if not data:
-        return JsonResponse({'success': False, 'message': 'No QR data received'}, status=400)
     
     try:
-        booking = Booking.objects.get(booking_id=data)
-    except Booking.DoesNotExist:
-        return JsonResponse({'success': False, 'message': 'Invalid or unknown QR code'}, status=404)
-    
-    # Check if host owns this event
-    if booking.event.host != request.user:
-        return JsonResponse({'success': False, 'message': 'You are not authorized for this event'}, status=403)
-    
-    # Check if already used
-    if booking.is_used:
+        # Check authentication
+        if not request.user.is_authenticated:
+            return JsonResponse({
+                'success': False,
+                'message': 'Authentication required'
+            }, status=401)
+        
+        # Check if user is a host
+        if request.user.role != 'host':
+            return JsonResponse({
+                'success': False,
+                'message': 'Only hosts can verify tickets'
+            }, status=403)
+        
+        # Get QR data
+        data = request.POST.get('qrdata')
+        
+        if not data:
+            return JsonResponse({
+                'success': False,
+                'message': 'No QR data received'
+            }, status=400)
+        
+        from guest.models import Booking
+        
+        # Find booking
+        try:
+            booking = Booking.objects.select_related('guest', 'event').get(booking_id=data)
+        except Booking.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid or unknown QR code'
+            }, status=200)
+        
+        # Check if host owns this event
+        if booking.event.host != request.user:
+            return JsonResponse({
+                'success': False,
+                'message': 'You are not authorized for this event'
+            }, status=200)
+        
+        # If already used
+        if booking.is_used:
+            local_time = timezone.localtime(booking.scanned_at)
+            return JsonResponse({
+                'success': False,
+                'already_used': True,
+                'message': '❌ Ticket already used',
+                'guest': booking.guest.full_name,
+                'event': booking.event.name,
+                'tickets': booking.ticket_quantity,
+                'scanned_at': local_time.strftime('%Y-%m-%d %H:%M:%S'),
+                'booking_id': str(booking.booking_id)
+            }, status=200)
+        
+        # Mark as used
+        booking.is_used = True
+        booking.scanned_at = timezone.now()
+        booking.save(update_fields=['is_used', 'scanned_at'])
+
+        local_time = timezone.localtime(booking.scanned_at)
+        
         return JsonResponse({
-            'success': False,
-            'already_used': True,
-            'message': f'❌ Ticket already used',
-            'guest': booking.guest.fullname,
+            'success': True,
+            'already_used': False,
+            'guest': booking.guest.full_name,
             'event': booking.event.name,
             'tickets': booking.ticket_quantity,
-            'scanned_at': booking.scanned_at.strftime('%Y-%m-%d %H:%M:%S'),
-            'booking_id': str(booking.booking_id)
-        })
-    
-    # Mark as used
-    booking.mark_as_used()
-    
-    return JsonResponse({
-        'success': True,
-        'already_used': False,
-        'guest': booking.guest.fullname,
-        'event': booking.event.name,
-        'tickets': booking.ticket_quantity,
-        'message': '✅ Entry confirmed. Ticket marked as used.',
-        'scanned_at': booking.scanned_at.strftime('%Y-%m-%d %H:%M:%S')
-    })
-
-
+            'message': '✅ Entry confirmed. Ticket marked as used.',
+            'scanned_at': local_time.strftime('%Y-%m-%d %H:%M:%S')
+        }, status=200)
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Server error: {str(e)}'
+        }, status=200)
