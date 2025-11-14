@@ -87,10 +87,25 @@ class ProposalCreateView(LoginRequiredMixin, PlannerRequiredMixin, CreateView):
 class ProposalListView(LoginRequiredMixin, PlannerRequiredMixin, ListView):
     model = Proposal
     template_name = 'planner/proposal_list.html'
-    context_object_name = 'proposals'
+    context_object_name = 'proposals'  # still allowed; we will override manually
 
     def get_queryset(self):
-        return Proposal.objects.filter(planner=self.request.user).order_by('-created_at')
+        return (
+            Proposal.objects
+            .filter(planner=self.request.user)
+            .order_by('-created_at')
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Apply your custom pagination
+        page_obj, items = paginate_queryset(self.request, self.get_queryset())
+
+        context['page_obj'] = page_obj
+        context['proposals'] = items   # replace queryset from ListView
+
+        return context
 
 class ProposalUpdateView(LoginRequiredMixin, PlannerRequiredMixin, UpdateView):
     model = Proposal

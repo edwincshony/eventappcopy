@@ -173,18 +173,30 @@ class ETicketView(LoginRequiredMixin, GuestRequiredMixin, DetailView):
         response = super().get(request, *args, **kwargs)
         # Optional: Make downloadable PDF (placeholder HTML printable)
         return response
-
 class EventListView(LoginRequiredMixin, GuestRequiredMixin, ListView):
     model = Event
     template_name = 'guest/event_list.html'
     context_object_name = 'events'
-    paginate_by = 6
+    paginate_by = None   # IMPORTANT: disable ListView's pagination
 
     def get_queryset(self):
         return Event.objects.filter(
             proposals__status='accepted',
             start_date__gt=timezone.now()
         ).distinct()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        queryset = self.get_queryset()
+
+        # use your global pagination function
+        page_obj, items = paginate_queryset(self.request, queryset)
+
+        context['page_obj'] = page_obj     # required by your partial
+        context['events'] = items          # paginated events
+
+        return context
 
 
     # For download: Add PDF response if reportlab
